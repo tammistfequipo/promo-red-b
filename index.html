@@ -156,7 +156,7 @@
         0 6px 0 rgba(123, 31, 162, 1),
         0 0 20px rgba(255, 235, 59, 0.9);
       transform: translateY(0);
-      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.1s ease;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.1s.ease;
     }
 
     #spinBtn:hover:not(:disabled) { filter: brightness(1.05); }
@@ -257,7 +257,7 @@
 
     <button id="spinBtn">GIRAR RED-B JACKPOT</button>
 
-    <p class="info-intentos">Un intento por día por dispositivo.</p>
+    <p class="info-intentos" id="infoIntentos">Intentos restantes hoy: 3/3</p>
 
     <div id="mensaje"></div>
 
@@ -279,8 +279,9 @@
   <script>
     const MAX_PREMIOS_ESTRELLA = 10;   // ⭐ 500 fichas
     const MAX_PREMIOS_DIAMANTE = 10;   // 💎 200 fichas
+    const MAX_INTENTOS_DIA = 3;
 
-    const STORAGE_KEY = "redb_jackpot_state_v3";
+    const STORAGE_KEY = "redb_jackpot_state_v4";
 
     const SYMBOLS = ["🃏", "⭐", "💎", "👑", "🔔", "💠"];
 
@@ -295,6 +296,7 @@
     const spinBtn = document.getElementById("spinBtn");
     const mensaje = document.getElementById("mensaje");
     const slotWrapper = document.getElementById("slotWrapper");
+    const infoIntentos = document.getElementById("infoIntentos");
 
     function hoyString() {
       const h = new Date();
@@ -310,14 +312,14 @@
             fecha: hoy,
             usadosEstrella: 0,
             usadosDiamante: 0,
-            yaJugoHoy: false
+            intentosUsados: 0
           };
         }
         return {
           fecha: data.fecha || hoy,
           usadosEstrella: data.usadosEstrella || 0,
           usadosDiamante: data.usadosDiamante || 0,
-          yaJugoHoy: !!data.yaJugoHoy
+          intentosUsados: data.intentosUsados || 0
         };
       } catch {
         const hoy = hoyString();
@@ -325,13 +327,18 @@
           fecha: hoy,
           usadosEstrella: 0,
           usadosDiamante: 0,
-          yaJugoHoy: false
+          intentosUsados: 0
         };
       }
     }
 
     function guardarEstado(estado) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+    }
+
+    function actualizarIntentosUI(estado) {
+      const restantes = Math.max(0, MAX_INTENTOS_DIA - (estado.intentosUsados || 0));
+      infoIntentos.textContent = `Intentos restantes hoy: ${restantes}/${MAX_INTENTOS_DIA}`;
     }
 
     function mensajeInfo(texto, tipo = null) {
@@ -364,8 +371,7 @@
           colCells.forEach(cell => {
             const row = parseInt(cell.dataset.row, 10);
             if (row === 1) {
-              // FILA CENTRAL: NUNCA JOKER
-              cell.textContent = simboloRandomSinJoker();
+              cell.textContent = simboloRandomSinJoker(); // fila central sin joker
             } else {
               cell.textContent = simboloRandom();
             }
@@ -388,7 +394,6 @@
             next();
           });
         } else {
-          // Al terminar todos los rodillos, aseguramos que NO haya 3 JOKER en ninguna fila
           evitarTresJokersEnFila();
           callbackFin && callbackFin();
         }
@@ -397,7 +402,6 @@
       next();
     }
 
-    // Evita que en cualquiera de las 3 filas haya 3 o más 🃏 seguidos
     function evitarTresJokersEnFila() {
       for (let row = 0; row < 3; row++) {
         let runStart = -1;
@@ -405,7 +409,6 @@
         let current = null;
 
         for (let col = 0; col <= 5; col++) {
-          // Usamos col <= 5 para cerrar el último run
           let simbolo = null;
           if (col < 5) {
             const cell = cells.find(
@@ -420,7 +423,6 @@
             current = "🃏";
           } else {
             if (runLength >= 3 && current === "🃏") {
-              // Rompemos la corrida de jokers cambiando uno del medio
               const breakCol = runStart + 1;
               const breakCell = cells.find(
                 c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === breakCol
@@ -429,7 +431,6 @@
                 breakCell.textContent = simboloRandomSinJoker();
               }
             }
-            // Reset run
             runStart = -1;
             runLength = 0;
             current = null;
@@ -559,19 +560,23 @@
     function jugar() {
       let estado = cargarEstado();
 
-      if (estado.yaJugoHoy) {
-        mensajeInfo("Ya jugaste hoy. Volvé mañana 🔁", "error");
+      if (estado.intentosUsados >= MAX_INTENTOS_DIA) {
+        mensajeInfo("Ya usaste tus 3 intentos de hoy. Volvé mañana 🔁", "error");
         spinBtn.disabled = true;
+        actualizarIntentosUI(estado);
         return;
       }
+
+      // Consumimos un intento
+      estado.intentosUsados += 1;
+      guardarEstado(estado);
+      actualizarIntentosUI(estado);
 
       spinBtn.disabled = true;
       limpiarResaltados();
       mensajeInfo("Girando rodillos... 🎰", null);
 
       animarRodillosSecuencial(() => {
-        estado.yaJugoHoy = true;
-
         const resultado = evaluarLineaCentral();
 
         if (resultado) {
@@ -580,26 +585,42 @@
           if (usadoActual < premio.max) {
             estado[premio.key] = usadoActual + 1;
             guardarEstado(estado);
-            mostrarPremio(premio, celdas);
+            mostrarPremio(premio, celdas); // acá se bloquea el botón siempre
           } else {
             guardarEstado(estado);
-            mensajeInfo("Hoy ya se entregaron todos los premios de ese tipo. 🙈 Volvé mañana.", "error");
+            if (estado.intentosUsados >= MAX_INTENTOS_DIA) {
+              mensajeInfo("Hoy no tocó premio 🙈 Ya usaste tus 3 intentos. Volvé mañana.", "error");
+              spinBtn.disabled = true;
+            } else {
+              const restantes = MAX_INTENTOS_DIA - estado.intentosUsados;
+              mensajeInfo(`Hoy no tocó premio 🙈 Te quedan ${restantes} intento(s) hoy.`, "error");
+              spinBtn.disabled = false;
+            }
           }
         } else {
           guardarEstado(estado);
-          mensajeInfo("Hoy no tocó premio 🙈 Volvé mañana.", "error");
+          if (estado.intentosUsados >= MAX_INTENTOS_DIA) {
+            mensajeInfo("Hoy no tocó premio 🙈 Ya usaste tus 3 intentos. Volvé mañana.", "error");
+            spinBtn.disabled = true;
+          } else {
+            const restantes = MAX_INTENTOS_DIA - estado.intentosUsados;
+            mensajeInfo(`Hoy no tocó premio 🙈 Te quedan ${restantes} intento(s) hoy.`, "error");
+            spinBtn.disabled = false;
+          }
         }
       });
     }
 
     (function init() {
       const estado = cargarEstado();
-      if (estado.yaJugoHoy) {
+      actualizarIntentosUI(estado);
+
+      if (estado.intentosUsados >= MAX_INTENTOS_DIA) {
         spinBtn.disabled = true;
-        mensajeInfo("Ya jugaste hoy. Volvé mañana 🔁", "error");
+        mensajeInfo("Ya usaste tus 3 intentos de hoy. Volvé mañana 🔁", "error");
       } else {
         spinBtn.disabled = false;
-        mensajeInfo("Tenés 1 intento hoy. ¡Suerte! 🍀", "ok");
+        mensajeInfo("Tenés hasta 3 intentos hoy. ¡Suerte! 🍀", "ok");
       }
     })();
 
