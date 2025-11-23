@@ -103,7 +103,7 @@
       animation: diamondGlow 1s ease;
     }
 
-    /* 🔘 BOTÓN EFECTO 3D */
+    /* BOTÓN EFECTO 3D */
     #spinBtn {
       margin-top: 4px;
       width: 100%;
@@ -205,6 +205,10 @@
   <script>
     const MAX_PREMIOS_500 = 10;  // 🤡 500 fichas
     const MAX_PREMIOS_200 = 10;  // 💎 200 fichas
+
+    // 🔥 MODO PRUEBA: poné true para que SIEMPRE salga premio (para probar animaciones)
+    // Cuando lo vayas a usar con clientes, CAMBIAR A false
+    const MODO_TEST = true;
 
     const STORAGE_KEY = "redb_slot_state_v3";
 
@@ -310,81 +314,95 @@
       };
     }
 
+    function mostrarPremio(tipoPremio) {
+      // tipoPremio: "G" (500 fichas - payaso) o "C" (200 fichas - diamante)
+
+      if (tipoPremio === "G") {
+        reel1.textContent = "🤡";
+        reel2.textContent = "🤡";
+        reel3.textContent = "🤡";
+
+        reel1.classList.add("payaso-win");
+        reel2.classList.add("payaso-win");
+        reel3.classList.add("payaso-win");
+        setTimeout(() => {
+          reel1.classList.remove("payaso-win");
+          reel2.classList.remove("payaso-win");
+          reel3.classList.remove("payaso-win");
+        }, 800);
+      } else {
+        reel1.textContent = "💎";
+        reel2.textContent = "💎";
+        reel3.textContent = "💎";
+
+        reel1.classList.add("diamond-win");
+        reel2.classList.add("diamond-win");
+        reel3.classList.add("diamond-win");
+        setTimeout(() => {
+          reel1.classList.remove("diamond-win");
+          reel2.classList.remove("diamond-win");
+          reel3.classList.remove("diamond-win");
+        }, 1000);
+      }
+
+      slotWindow.classList.add("shake");
+      setTimeout(() => slotWindow.classList.remove("shake"), 600);
+
+      const { fecha, hora } = formatearFechaHora();
+      const codigo = generarCodigo(tipoPremio);
+
+      mensajeInfo(`
+        🎉 ¡TENÉS PREMIO EN FICHAS! 📲<br>
+        <small>
+        Fecha: ${fecha} - ${hora}<br>
+        Código: ${codigo}
+        </small>
+      `, "ok");
+    }
+
     function jugar() {
       let estado = cargarEstado();
 
-      if (estado.yaJugoHoy) {
+      if (!MODO_TEST && estado.yaJugoHoy) {
         mensajeInfo("Ya jugaste hoy. Volvé mañana 🔁", "error");
         return;
       }
 
       spinBtn.disabled = true;
-      mensajeInfo("Girando... 🎰");
+      mensajeInfo(MODO_TEST ? "MODO PRUEBA: forzando premio para ver animación 👀" : "Girando... 🎰");
 
       animarSlot(({ f1, f2, f3 }) => {
-        estado.yaJugoHoy = true;
-
         let tipoPremio = null;
 
-        if (f1 === f2 && f2 === f3) {
-          if (f1 === "🤡" && estado.usados500 < MAX_PREMIOS_500) {
-            tipoPremio = "G";
-            estado.usados500 += 1;
-          }
-          else if (f1 === "💎" && estado.usados200 < MAX_PREMIOS_200) {
-            tipoPremio = "C";
-            estado.usados200 += 1;
+        if (MODO_TEST) {
+          // En modo prueba: elegimos al azar entre premio grande y chico
+          tipoPremio = Math.random() < 0.5 ? "G" : "C";
+          // NO tocamos estado (no gasta intentos ni premios reales)
+        } else {
+          // MODO NORMAL
+          estado.yaJugoHoy = true;
+
+          if (f1 === f2 && f2 === f3) {
+            if (f1 === "🤡" && estado.usados500 < MAX_PREMIOS_500) {
+              tipoPremio = "G";
+              estado.usados500 += 1;
+            }
+            else if (f1 === "💎" && estado.usados200 < MAX_PREMIOS_200) {
+              tipoPremio = "C";
+              estado.usados200 += 1;
+            }
           }
         }
 
         if (tipoPremio) {
-          guardarEstado(estado);
-
-          if (tipoPremio === "G") {
-            reel1.textContent = "🤡";
-            reel2.textContent = "🤡";
-            reel3.textContent = "🤡";
-
-            reel1.classList.add("payaso-win");
-            reel2.classList.add("payaso-win");
-            reel3.classList.add("payaso-win");
-            setTimeout(() => {
-              reel1.classList.remove("payaso-win");
-              reel2.classList.remove("payaso-win");
-              reel3.classList.remove("payaso-win");
-            }, 800);
-
-          } else {
-            reel1.textContent = "💎";
-            reel2.textContent = "💎";
-            reel3.textContent = "💎";
-
-            reel1.classList.add("diamond-win");
-            reel2.classList.add("diamond-win");
-            reel3.classList.add("diamond-win");
-            setTimeout(() => {
-              reel1.classList.remove("diamond-win");
-              reel2.classList.remove("diamond-win");
-              reel3.classList.remove("diamond-win");
-            }, 1000);
+          if (!MODO_TEST) {
+            guardarEstado(estado);
           }
-
-          slotWindow.classList.add("shake");
-          setTimeout(() => slotWindow.classList.remove("shake"), 600);
-
-          const { fecha, hora } = formatearFechaHora();
-          const codigo = generarCodigo(tipoPremio);
-
-          mensajeInfo(`
-            🎉 ¡TENÉS PREMIO EN FICHAS! 📲<br>
-            <small>
-            Fecha: ${fecha} - ${hora}<br>
-            Código: ${codigo}
-            </small>
-          `, "ok");
-
+          mostrarPremio(tipoPremio);
         } else {
-          guardarEstado(estado);
+          if (!MODO_TEST) {
+            guardarEstado(estado);
+          }
           mensajeInfo("Hoy no tocó premio 🙈 Volvé mañana.", "error");
         }
 
@@ -392,7 +410,12 @@
       });
     }
 
-    mensajeInfo("Tenés 1 intento hoy. ¡Suerte! 🍀");
+    if (MODO_TEST) {
+      mensajeInfo("MODO PRUEBA ACTIVADO: va a salir premio para que veas cómo queda 👀", "ok");
+    } else {
+      mensajeInfo("Tenés 1 intento hoy. ¡Suerte! 🍀");
+    }
+
     spinBtn.addEventListener("click", jugar);
   </script>
 </body>
