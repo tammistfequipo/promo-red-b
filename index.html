@@ -108,7 +108,6 @@
       filter: drop-shadow(0 0 12px #ffeb3b);
     }
 
-    /* Shake del gabinete */
     @keyframes shake {
       0% { transform: translateX(0); }
       20% { transform: translateX(-5px); }
@@ -117,42 +116,29 @@
       80% { transform: translateX(5px); }
       100% { transform: translateX(0); }
     }
+    .shake { animation: shake 0.5s ease; }
 
-    .shake {
-      animation: shake 0.5s ease;
-    }
-
-    /* Efecto payaso / joker */
     @keyframes jokerPulse {
       0% { transform: scale(1); filter: drop-shadow(0 0 0px #ffeb3b); }
       50% { transform: scale(1.2); filter: drop-shadow(0 0 16px #ffeb3b); }
       100% { transform: scale(1); filter: drop-shadow(0 0 0px #ffeb3b); }
     }
-    .joker-win {
-      animation: jokerPulse 0.8s ease;
-    }
+    .joker-win { animation: jokerPulse 0.8s ease; }
 
-    /* Efecto bonus */
     @keyframes bonusGlow {
       0% { filter: drop-shadow(0 0 0px #ff9800); }
       50% { filter: drop-shadow(0 0 16px #ff9800); }
       100% { filter: drop-shadow(0 0 0px #ff9800); }
     }
-    .bonus-win {
-      animation: bonusGlow 0.9s ease;
-    }
+    .bonus-win { animation: bonusGlow 0.9s ease; }
 
-    /* Efecto diamante */
     @keyframes diamondGlow {
       0% { filter: drop-shadow(0 0 0px #80deea); }
       50% { filter: drop-shadow(0 0 16px #80deea); }
       100% { filter: drop-shadow(0 0 0px #80deea); }
     }
-    .diamond-win {
-      animation: diamondGlow 1s ease;
-    }
+    .diamond-win { animation: diamondGlow 1s ease; }
 
-    /* Botón GIRAR 3D */
     #spinBtn {
       margin-top: 4px;
       width: 100%;
@@ -173,9 +159,7 @@
       transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.1s ease;
     }
 
-    #spinBtn:hover:not(:disabled) {
-      filter: brightness(1.05);
-    }
+    #spinBtn:hover:not(:disabled) { filter: brightness(1.05); }
 
     #spinBtn:active:not(:disabled) {
       transform: translateY(3px);
@@ -278,8 +262,10 @@
     <div id="mensaje"></div>
 
     <div class="paytable">
-      🃏 3 JOKER en la línea central → <strong>500 fichas</strong><br>
-      ⭐ 3 BONUS en la línea central → <strong>300 fichas</strong><br>
+      🃏 3 JOKER en la línea central → <strong>10K en fichas</strong><br>
+      🃏 4 JOKER en la línea central → <strong>15K en fichas</strong><br>
+      🃏 5 JOKER en la línea central → <strong>50K en fichas</strong><br>
+      ⭐ 3 ESTRELLAS en la línea central → <strong>500 fichas</strong><br>
       💎 3 DIAMANTES en la línea central → <strong>200 fichas</strong><br>
       Los premios son en fichas RED-B.
     </div>
@@ -291,21 +277,17 @@
   </div>
 
   <script>
-    // CONFIG PREMIOS POR DÍA
-    const MAX_PREMIOS_JOKER = 10;  // 🃏 500 fichas
-    const MAX_PREMIOS_BONUS = 10;  // ⭐ 300 fichas
-    const MAX_PREMIOS_DIAMANTE = 10; // 💎 200 fichas
+    const MAX_PREMIOS_ESTRELLA = 10;   // ⭐ 500 fichas
+    const MAX_PREMIOS_DIAMANTE = 10;   // 💎 200 fichas
 
-    const STORAGE_KEY = "redb_jackpot_state_v1";
+    const STORAGE_KEY = "redb_jackpot_state_v3";
 
-    // Símbolos (por ahora emojis; luego se pueden reemplazar por imágenes)
     const SYMBOLS = ["🃏", "⭐", "💎", "👑", "🔔", "💠"];
 
-    // Mapeo de premios
     const PRIZE_MAP = {
-      "🃏": { tipo: "J", fichas: 500, key: "usadosJoker", max: MAX_PREMIOS_JOKER },
-      "⭐": { tipo: "B", fichas: 300, key: "usadosBonus", max: MAX_PREMIOS_BONUS },
+      "⭐": { tipo: "E", fichas: 500, key: "usadosEstrella", max: MAX_PREMIOS_ESTRELLA },
       "💎": { tipo: "D", fichas: 200, key: "usadosDiamante", max: MAX_PREMIOS_DIAMANTE }
+      // 🃏 aparece pero NUNCA paga
     };
 
     const slotMachine = document.getElementById("slotMachine");
@@ -326,16 +308,14 @@
         if (!data || data.fecha !== hoy) {
           return {
             fecha: hoy,
-            usadosJoker: 0,
-            usadosBonus: 0,
+            usadosEstrella: 0,
             usadosDiamante: 0,
             yaJugoHoy: false
           };
         }
         return {
           fecha: data.fecha || hoy,
-          usadosJoker: data.usadosJoker || 0,
-          usadosBonus: data.usadosBonus || 0,
+          usadosEstrella: data.usadosEstrella || 0,
           usadosDiamante: data.usadosDiamante || 0,
           yaJugoHoy: !!data.yaJugoHoy
         };
@@ -343,8 +323,7 @@
         const hoy = hoyString();
         return {
           fecha: hoy,
-          usadosJoker: 0,
-          usadosBonus: 0,
+          usadosEstrella: 0,
           usadosDiamante: 0,
           yaJugoHoy: false
         };
@@ -366,7 +345,11 @@
       return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
     }
 
-    // Animar columnas secuenciales
+    function simboloRandomSinJoker() {
+      const sinJoker = SYMBOLS.filter(s => s !== "🃏");
+      return sinJoker[Math.floor(Math.random() * sinJoker.length)];
+    }
+
     function girarColumna(colIndex, duracion, callbackFin) {
       const colCells = cells.filter(c => parseInt(c.dataset.col, 10) === colIndex);
       const start = performance.now();
@@ -378,9 +361,14 @@
           });
           requestAnimationFrame(frame);
         } else {
-          // Fijar símbolo final de esta columna (arriba, centro, abajo)
           colCells.forEach(cell => {
-            cell.textContent = simboloRandom();
+            const row = parseInt(cell.dataset.row, 10);
+            if (row === 1) {
+              // FILA CENTRAL: NUNCA JOKER
+              cell.textContent = simboloRandomSinJoker();
+            } else {
+              cell.textContent = simboloRandom();
+            }
           });
           callbackFin && callbackFin();
         }
@@ -389,9 +377,8 @@
       requestAnimationFrame(frame);
     }
 
-    // Gira las 5 columnas una tras otra
     function animarRodillosSecuencial(callbackFin) {
-      const durBase = 550; // ms
+      const durBase = 550;
       let col = 0;
 
       function next() {
@@ -401,6 +388,8 @@
             next();
           });
         } else {
+          // Al terminar todos los rodillos, aseguramos que NO haya 3 JOKER en ninguna fila
+          evitarTresJokersEnFila();
           callbackFin && callbackFin();
         }
       }
@@ -408,7 +397,47 @@
       next();
     }
 
-    // Código anti-estafa
+    // Evita que en cualquiera de las 3 filas haya 3 o más 🃏 seguidos
+    function evitarTresJokersEnFila() {
+      for (let row = 0; row < 3; row++) {
+        let runStart = -1;
+        let runLength = 0;
+        let current = null;
+
+        for (let col = 0; col <= 5; col++) {
+          // Usamos col <= 5 para cerrar el último run
+          let simbolo = null;
+          if (col < 5) {
+            const cell = cells.find(
+              c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === col
+            );
+            simbolo = cell ? cell.textContent : null;
+          }
+
+          if (simbolo === "🃏") {
+            if (runLength === 0) runStart = col;
+            runLength++;
+            current = "🃏";
+          } else {
+            if (runLength >= 3 && current === "🃏") {
+              // Rompemos la corrida de jokers cambiando uno del medio
+              const breakCol = runStart + 1;
+              const breakCell = cells.find(
+                c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === breakCol
+              );
+              if (breakCell) {
+                breakCell.textContent = simboloRandomSinJoker();
+              }
+            }
+            // Reset run
+            runStart = -1;
+            runLength = 0;
+            current = null;
+          }
+        }
+      }
+    }
+
     function generarCodigo(tipoPremio) {
       const ahora = new Date();
       const y = ahora.getFullYear();
@@ -425,7 +454,6 @@
         rand += chars[Math.floor(Math.random() * chars.length)];
       }
 
-      // REDB-JACK-<tipo>-<fecha-hora>-<random>
       return `REDBJACK-${tipoPremio}-${base}-${rand}`;
     }
 
@@ -440,11 +468,12 @@
       return { fecha: `${d}/${m}/${y}`, hora: `${hh}:${mm}:${ss}` };
     }
 
-    // Busca 3 consecutivos iguales en la línea central (fila 1) entre las 5 columnas
     function evaluarLineaCentral() {
       const lineaCentral = [];
       for (let col = 0; col < 5; col++) {
-        const cell = cells.find(c => parseInt(c.dataset.col, 10) === col && parseInt(c.dataset.row, 10) === 1);
+        const cell = cells.find(
+          c => parseInt(c.dataset.col, 10) === col && parseInt(c.dataset.row, 10) === 1
+        );
         lineaCentral.push({ col, simbolo: cell.textContent, cell });
       }
 
@@ -499,14 +528,9 @@
 
     function mostrarPremio(premioInfo, celdas) {
       limpiarResaltados();
+      celdas.forEach(cell => cell.classList.add("win-highlight"));
 
-      celdas.forEach(cell => {
-        cell.classList.add("win-highlight");
-      });
-
-      if (premioInfo.tipo === "J") {
-        celdas.forEach(c => c.classList.add("joker-win"));
-      } else if (premioInfo.tipo === "B") {
+      if (premioInfo.tipo === "E") {
         celdas.forEach(c => c.classList.add("bonus-win"));
       } else if (premioInfo.tipo === "D") {
         celdas.forEach(c => c.classList.add("diamond-win"));
@@ -568,7 +592,6 @@
       });
     }
 
-    // Estado inicial UI
     (function init() {
       const estado = cargarEstado();
       if (estado.yaJugoHoy) {
