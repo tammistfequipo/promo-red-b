@@ -43,6 +43,17 @@
         0 0 18px rgba(255, 193, 7, 0.7);
     }
 
+    .sub { font-size: 0.9rem; color: #e0e0ff; margin-bottom: 10px; }
+
+    .jackpot-label {
+      font-family: "Orbitron", system-ui;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #ffe082;
+      margin-bottom: 6px;
+    }
+
     .slot-wrapper {
       margin: 12px 0 16px;
       padding: 10px;
@@ -70,23 +81,23 @@
       gap: 4px;
     }
 
+    /* ✅ EMOJIS GRANDES */
     .cell {
-      height: 48px;
+      height: 68px;
       border-radius: 10px;
       background: radial-gradient(circle at top, #ffffff 0, #eceff1 45%, #b0bec5 100%);
-      box-shadow:
-        inset 0 0 6px rgba(0, 0, 0, 0.5);
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.6rem;
+      font-size: 2.4rem;
       color: #000;
       transition: transform 0.15s ease, filter 0.15s ease;
     }
 
     .cell.win-highlight {
-      transform: scale(1.15);
-      filter: drop-shadow(0 0 12px #ffeb3b);
+      transform: scale(1.2);
+      filter: drop-shadow(0 0 14px #ffeb3b);
     }
 
     @keyframes shake {
@@ -102,80 +113,33 @@
     #spinBtn {
       margin-top: 4px;
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       border-radius: 999px;
       border: none;
       font-family: "Orbitron", system-ui;
       font-size: 1rem;
       text-transform: uppercase;
-      letter-spacing: 1px;
       cursor: pointer;
       background: radial-gradient(circle at top, #ffeb3b 0, #ff9800 40%, #e91e63 100%);
       color: #2b0b24;
       box-shadow:
         0 6px 0 rgba(123, 31, 162, 1),
         0 0 20px rgba(255, 235, 59, 0.9);
-      transform: translateY(0);
     }
 
     #spinBtn:disabled {
       opacity: 0.55;
       cursor: not-allowed;
-      transform: translateY(3px);
     }
 
-    #mensaje {
-      margin-top: 14px;
-      min-height: 60px;
-      font-size: 0.92rem;
-    }
-
-    #mensaje.ok {
-      color: #c6ff00;
-      text-shadow: 0 0 10px rgba(198, 255, 0, 0.8);
-      font-weight: 700;
-    }
-
-    #mensaje.error {
-      color: #ff8a80;
-      font-weight: 600;
-    }
+    #mensaje { margin-top: 14px; min-height: 60px; font-size: 0.92rem; }
+    #mensaje.ok { color: #c6ff00; font-weight: 700; }
+    #mensaje.error { color: #ff8a80; font-weight: 600; }
 
     .info-intentos {
       margin-top: 8px;
       font-size: 0.85rem;
       color: #b3e5fc;
-    }
-
-    /* ✅ NUEVO DISEÑO EN 2 COLUMNAS */
-    .paytable-grid {
-      margin-top: 14px;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-    }
-
-    .pay-block {
-      background: rgba(255, 255, 255, 0.06);
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 0.78rem;
-      line-height: 1.3;
-      text-align: left;
-    }
-
-    .pay-block h4 {
-      font-size: 0.85rem;
-      color: #ffeb3b;
-      margin-bottom: 6px;
-      text-shadow: 0 0 8px rgba(255, 235, 59, 0.6);
-    }
-
-    .pay-note {
-      margin-top: 10px;
-      font-size: 0.75rem;
-      color: #ffe082;
-      text-align: center;
     }
 
     .nota {
@@ -186,18 +150,29 @@
       line-height: 1.4;
     }
 
+    /* ✅ TABLA EN 2 COLUMNAS */
+    .paytable {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+      font-size: 0.8rem;
+      color: #ffe082;
+      text-align: left;
+    }
+
+    .pay-block strong { color: #fff; }
+
   </style>
 </head>
 <body>
   <div class="container">
     <h1>RED-B JACKPOT</h1>
-    <p class="sub">
-      Tocá el botón y <strong>probá tu suerte</strong> 🎰
-    </p>
+    <p class="jackpot-label">Slot exclusivo promo RED-B</p>
+    <p class="sub"><strong>3 intentos por día</strong> 🎰</p>
 
     <div class="slot-wrapper" id="slotWrapper">
       <div class="slot-machine" id="slotMachine">
-        <!-- 5 columnas × 3 filas -->
         <div class="reel-column">
           <div class="cell" data-row="0" data-col="0">💎</div>
           <div class="cell" data-row="1" data-col="0">👑</div>
@@ -205,7 +180,7 @@
         </div>
         <div class="reel-column">
           <div class="cell" data-row="0" data-col="1">💠</div>
-          <div class="cell" data-row="1" data-col="1">🃏</div>
+          <div class="cell" data-row="1" data-col="1">⭐</div>
           <div class="cell" data-row="2" data-col="1">⭐</div>
         </div>
         <div class="reel-column">
@@ -216,7 +191,7 @@
         <div class="reel-column">
           <div class="cell" data-row="0" data-col="3">🔔</div>
           <div class="cell" data-row="1" data-col="3">⭐</div>
-          <div class="cell" data-row="2" data-col="3">🃏</div>
+          <div class="cell" data-row="2" data-col="3">💠</div>
         </div>
         <div class="reel-column">
           <div class="cell" data-row="0" data-col="4">💎</div>
@@ -232,75 +207,64 @@
 
     <div id="mensaje"></div>
 
-    <!-- ✅ NUEVA TABLA DE PREMIOS EN 2 COLUMNAS -->
-    <div class="paytable-grid">
+    <!-- ✅ TABLA DE PREMIOS EN 2 COLUMNAS -->
+    <div class="paytable">
 
       <div class="pay-block">
-        <h4>🃏 JOKER JACKPOT</h4>
-        <p>• 5 🃏 → <strong>50K fichas</strong></p>
-        <p>• 4 🃏 → <strong>15K fichas</strong></p>
-        <p>• 3 🃏 → <strong>10K fichas</strong></p>
+        ⭐ <strong>ESTRELLAS</strong><br>
+        • 4 ⭐ → <strong>1K fichas</strong><br>
+        • 3 ⭐ → <strong>500 fichas</strong>
       </div>
 
       <div class="pay-block">
-        <h4>⭐ ESTRELLAS</h4>
-        <p>• 5 ⭐ → <strong>2K fichas</strong></p>
-        <p>• 4 ⭐ → <strong>1K fichas</strong></p>
-        <p>• 3 ⭐ → <strong>500 fichas</strong></p>
+        💎 <strong>DIAMANTES</strong><br>
+        • 4 💎 → <strong>2.5K fichas</strong><br>
+        • 3 💎 → <strong>1K fichas</strong>
       </div>
 
       <div class="pay-block">
-        <h4>💎 DIAMANTES</h4>
-        <p>• 5 💎 → <strong>5K fichas</strong></p>
-        <p>• 4 💎 → <strong>2.5K fichas</strong></p>
-        <p>• 3 💎 → <strong>1K fichas</strong></p>
+        👑 <strong>CORONAS</strong><br>
+        • 4 👑 → <strong>300 fichas</strong><br>
+        • 3 👑 → <strong>100 fichas</strong>
       </div>
 
       <div class="pay-block">
-        <h4>👑 CORONAS</h4>
-        <p>• 5 👑 → <strong>500 fichas</strong></p>
-        <p>• 4 👑 → <strong>300 fichas</strong></p>
-        <p>• 3 👑 → <strong>100 fichas</strong></p>
+        🔔 <strong>CAMPANAS</strong><br>
+        • 4 🔔 → <strong>3K fichas</strong><br>
+        • 3 🔔 → <strong>1K fichas</strong>
       </div>
 
       <div class="pay-block">
-        <h4>🔔 CAMPANAS</h4>
-        <p>• 5 🔔 → <strong>5K fichas</strong></p>
-        <p>• 4 🔔 → <strong>3K fichas</strong></p>
-        <p>• 3 🔔 → <strong>1K fichas</strong></p>
+        💠 <strong>GEMAS</strong><br>
+        • 4 💠 → <strong>4K fichas</strong><br>
+        • 3 💠 → <strong>2K fichas</strong>
       </div>
 
       <div class="pay-block">
-        <h4>💠 GEMAS</h4>
-        <p>• 5 💠 → <strong>6K fichas</strong></p>
-        <p>• 4 💠 → <strong>4K fichas</strong></p>
-        <p>• 3 💠 → <strong>2K fichas</strong></p>
+        🃏 <strong>JOKER JACKPOT</strong><br>
+        (Solo mito 😈 — nunca sale ni paga)
       </div>
 
     </div>
 
-    <p class="pay-note">
-      Premios válidos solo si la combinación empieza en la 1° columna.
-    </p>
-
     <small class="nota">
+      Solo paga si la combinación empieza en la 1° columna.<br>
       Si tenés premio, sacá captura y enviála a la línea RED-B.
     </small>
   </div>
 
   <script>
     const MAX_INTENTOS_DIA = 3;
-    const STORAGE_KEY = "redb_jackpot_state_v8";
+    const STORAGE_KEY = "redb_jackpot_state_v9";
 
-    const SYMBOLS = ["🃏", "⭐", "💎", "👑", "🔔", "💠"];
+    const SYMBOLS = ["⭐", "💎", "👑", "🔔", "💠", "🃏"];
 
     const PRIZES = {
-      "⭐": { 3: 500, 4: 1000, 5: 2000 },
-      "💎": { 3: 1000, 4: 2500, 5: 5000 },
-      "👑": { 3: 100, 4: 300, 5: 500 },
-      "🔔": { 3: 1000, 4: 3000, 5: 5000 },
-      "💠": { 3: 2000, 4: 4000, 5: 6000 }
-      // 🃏 nunca paga
+      "⭐": { 3: 500, 4: 1000 },
+      "💎": { 3: 1000, 4: 2500 },
+      "👑": { 3: 100, 4: 300 },
+      "🔔": { 3: 1000, 4: 3000 },
+      "💠": { 3: 2000, 4: 4000 }
     };
 
     const slotMachine = document.getElementById("slotMachine");
@@ -320,21 +284,12 @@
         const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
         const hoy = hoyString();
         if (!data || data.fecha !== hoy) {
-          return {
-            fecha: hoy,
-            intentosUsados: 0
-          };
+          return { fecha: hoy, intentosUsados: 0 };
         }
-        return {
-          fecha: data.fecha || hoy,
-          intentosUsados: data.intentosUsados || 0
-        };
+        return { fecha: data.fecha || hoy, intentosUsados: data.intentosUsados || 0 };
       } catch {
         const hoy = hoyString();
-        return {
-          fecha: hoy,
-          intentosUsados: 0
-        };
+        return { fecha: hoy, intentosUsados: 0 };
       }
     }
 
@@ -359,18 +314,7 @@
     }
 
     function simboloRandomSinJoker() {
-      const sinJoker = SYMBOLS.filter(s => s !== "🃏");
-      return sinJoker[Math.floor(Math.random() * sinJoker.length)];
-    }
-
-    function simboloRandomDistinto(avoid, excludeJoker = false) {
-      let pool = SYMBOLS.slice();
-      if (excludeJoker) {
-        pool = pool.filter(s => s !== "🃏");
-      }
-      pool = pool.filter(s => s !== avoid);
-      if (pool.length === 0) pool = SYMBOLS.filter(s => s !== avoid);
-      return pool[Math.floor(Math.random() * pool.length)];
+      return ["⭐", "💎", "👑", "🔔", "💠"][Math.floor(Math.random() * 5)];
     }
 
     function girarColumna(colIndex, duracion, callbackFin) {
@@ -379,18 +323,12 @@
 
       function frame(now) {
         if (now - start < duracion) {
-          colCells.forEach(cell => {
-            cell.textContent = simboloRandom();
-          });
+          colCells.forEach(cell => cell.textContent = simboloRandom());
           requestAnimationFrame(frame);
         } else {
           colCells.forEach(cell => {
             const row = parseInt(cell.dataset.row, 10);
-            if (row === 1) {
-              cell.textContent = simboloRandomSinJoker(); // fila central sin joker
-            } else {
-              cell.textContent = simboloRandom();
-            }
+            cell.textContent = row === 1 ? simboloRandomSinJoker() : simboloRandom();
           });
           callbackFin && callbackFin();
         }
@@ -410,7 +348,8 @@
             next();
           });
         } else {
-          evitarCombinacionesProhibidas();
+          evitar5Iguales();
+          evitarJoker();
           callbackFin && callbackFin();
         }
       }
@@ -418,58 +357,38 @@
       next();
     }
 
-    function evitarCombinacionesProhibidas() {
-      // Evitar 5 iguales horizontales
+    function evitar5Iguales() {
       for (let row = 0; row < 3; row++) {
-        const filaCells = [];
+        const fila = [];
         for (let col = 0; col < 5; col++) {
-          const cell = cells.find(
-            c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === col
-          );
-          filaCells.push(cell);
+          fila.push(cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col));
         }
-        const symbol0 = filaCells[0].textContent;
-        const todosIguales = filaCells.every(c => c.textContent === symbol0);
-        if (todosIguales) {
-          const middleCell = filaCells[2];
-          const excludeJoker = (parseInt(middleCell.dataset.row, 10) === 1);
-          middleCell.textContent = simboloRandomDistinto(symbol0, excludeJoker);
+        const symbol0 = fila[0].textContent;
+        if (fila.every(c => c.textContent === symbol0)) {
+          fila[2].textContent = simboloRandomSinJoker();
         }
       }
+    }
 
-      // Evitar 3+ jokers horizontales
+    function evitarJoker() {
       for (let row = 0; row < 3; row++) {
-        let runStart = -1;
-        let runLength = 0;
-        let current = null;
-
+        let count = 0;
+        let start = -1;
         for (let col = 0; col <= 5; col++) {
           let simbolo = null;
           if (col < 5) {
-            const cell = cells.find(
-              c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === col
-            );
-            simbolo = cell ? cell.textContent : null;
+            simbolo = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col).textContent;
           }
-
           if (simbolo === "🃏") {
-            if (runLength === 0) runStart = col;
-            runLength++;
-            current = "🃏";
+            if (count === 0) start = col;
+            count++;
           } else {
-            if (runLength >= 3 && current === "🃏") {
-              const breakCol = runStart + 1;
-              const breakCell = cells.find(
-                c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === breakCol
-              );
-              if (breakCell) {
-                const excludeJoker = (parseInt(breakCell.dataset.row, 10) === 1);
-                breakCell.textContent = simboloRandomDistinto("🃏", excludeJoker);
-              }
+            if (count >= 2) {
+              const cell = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === start + 1);
+              cell.textContent = simboloRandomSinJoker();
             }
-            runStart = -1;
-            runLength = 0;
-            current = null;
+            count = 0;
+            start = -1;
           }
         }
       }
@@ -483,14 +402,10 @@
       const hh = String(ahora.getHours()).padStart(2,"0");
       const mm = String(ahora.getMinutes()).padStart(2,"0");
       const ss = String(ahora.getSeconds()).padStart(2,"0");
-
       const base = `${y}${m}${d}${hh}${mm}${ss}`;
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
       let rand = "";
-      for (let i = 0; i < 4; i++) {
-        rand += chars[Math.floor(Math.random() * chars.length)];
-      }
-
+      for (let i = 0; i < 4; i++) rand += chars[Math.floor(Math.random() * chars.length)];
       return `REDBJACK-${simbolo}${cantidad}-${base}-${rand}`;
     }
 
@@ -510,9 +425,7 @@
       for (let row = 0; row < 3; row++) {
         const fila = [];
         for (let col = 0; col < 5; col++) {
-          const cell = cells.find(
-            c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === col
-          );
+          const cell = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col);
           fila.push({ simbolo: cell.textContent, cell });
         }
         grid.push(fila);
@@ -520,16 +433,15 @@
       return grid;
     }
 
-    // ✅ SOLO paga combinaciones que empiezan en la 1° columna (columna 0)
     function evaluarGanadores() {
       const grid = obtenerGrid();
       let mejorPremio = null;
       let mejoresCeldas = [];
 
       function evaluarLinea(positions) {
-        if (positions.length === 0) return;
         const first = positions[0];
         const simbolo = grid[first.r][first.c].simbolo;
+        if (!PRIZES[simbolo]) return;
         const runCells = [grid[first.r][first.c].cell];
         let len = 1;
 
@@ -538,15 +450,12 @@
           if (grid[r][c].simbolo === simbolo) {
             runCells.push(grid[r][c].cell);
             len++;
-          } else {
-            break;
-          }
+          } else break;
         }
 
-        if (len >= 3 && PRIZES[simbolo] && PRIZES[simbolo][len]) {
-          const fichas = PRIZES[simbolo][len];
-          if (!mejorPremio || fichas > mejorPremio.fichas) {
-            mejorPremio = { simbolo, cantidad: len, fichas };
+        if (PRIZES[simbolo][len]) {
+          if (!mejorPremio || PRIZES[simbolo][len] > mejorPremio.fichas) {
+            mejorPremio = { simbolo, cantidad: len, fichas: PRIZES[simbolo][len] };
             mejoresCeldas = runCells.slice();
           }
         }
@@ -562,16 +471,12 @@
 
       lineas.forEach(evaluarLinea);
 
-      if (mejorPremio) {
-        return { premio: mejorPremio, celdas: mejoresCeldas };
-      }
+      if (mejorPremio) return { premio: mejorPremio, celdas: mejoresCeldas };
       return null;
     }
 
     function limpiarResaltados() {
-      cells.forEach(cell => {
-        cell.classList.remove("win-highlight");
-      });
+      cells.forEach(cell => cell.classList.remove("win-highlight"));
     }
 
     function mostrarPremio(premioInfo, celdas) {
@@ -587,8 +492,7 @@
       mensajeInfo(`
         🎉 ¡GANASTE <strong>${premioInfo.fichas} FICHAS</strong>! 🎉<br>
         <small>
-        Premio en fichas RED-B JACKPOT.<br>
-        Combinación: ${premioInfo.cantidad} símbolos ${premioInfo.simbolo} desde la 1° columna<br>
+        Combinación: ${premioInfo.cantidad} símbolos ${premioInfo.simbolo}<br>
         Fecha: ${fecha} - ${hora}<br>
         Código: ${codigo}<br><br>
         ✅ YA TE SALIÓ PREMIO<br>
@@ -609,13 +513,13 @@
         return;
       }
 
-      estado.intentosUsados += 1;
+      estado.intentosUsados++;
       guardarEstado(estado);
       actualizarIntentosUI(estado);
 
       spinBtn.disabled = true;
       limpiarResaltados();
-      mensajeInfo("Girando rodillos... 🎰", null);
+      mensajeInfo("Girando rodillos... 🎰");
 
       animarRodillosSecuencial(() => {
         const resultado = evaluarGanadores();
