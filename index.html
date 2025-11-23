@@ -57,7 +57,6 @@
       transition: transform 0.2s ease;
     }
 
-    /* SHAKE */
     @keyframes shake {
       0% { transform: translateX(0); }
       20% { transform: translateX(-6px); }
@@ -66,9 +65,7 @@
       80% { transform: translateX(6px); }
       100% { transform: translateX(0); }
     }
-    .shake {
-      animation: shake 0.6s ease;
-    }
+    .shake { animation: shake 0.6s ease; }
 
     .reel {
       background: radial-gradient(circle at top, #ffffff 0, #e0e0e0 40%, #b0bec5 100%);
@@ -83,27 +80,20 @@
       transition: transform 0.2s ease;
     }
 
-    /* EFECTO PAYASO (500 fichas) */
     @keyframes payasoPulse {
       0% { transform: scale(1); filter: drop-shadow(0 0 0px #ffea00); }
       50% { transform: scale(1.2); filter: drop-shadow(0 0 16px #ffea00); }
       100% { transform: scale(1); filter: drop-shadow(0 0 0px #ffea00); }
     }
-    .payaso-win {
-      animation: payasoPulse 0.8s ease;
-    }
+    .payaso-win { animation: payasoPulse 0.8s ease; }
 
-    /* EFECTO DIAMANTE (200 fichas) */
     @keyframes diamondGlow {
       0% { filter: drop-shadow(0 0 0px #00e5ff); }
       50% { filter: drop-shadow(0 0 14px #00e5ff); }
       100% { filter: drop-shadow(0 0 0px #00e5ff); }
     }
-    .diamond-win {
-      animation: diamondGlow 1s ease;
-    }
+    .diamond-win { animation: diamondGlow 1s ease; }
 
-    /* BOTÓN EFECTO 3D */
     #spinBtn {
       margin-top: 4px;
       width: 100%;
@@ -122,48 +112,24 @@
       transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.1s ease;
     }
 
-    #spinBtn:hover {
-      filter: brightness(1.05);
-    }
-
+    #spinBtn:hover { filter: brightness(1.05); }
     #spinBtn:active {
       transform: translateY(3px);
       box-shadow:
         0 2px 0 rgba(120, 0, 30, 1),
         0 0 10px rgba(255, 23, 68, 0.7);
     }
-
     #spinBtn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: translateY(3px);
-      box-shadow:
-        0 2px 0 rgba(80, 80, 80, 0.5),
-        0 0 6px rgba(120, 120, 120, 0.4);
     }
 
-    #mensaje {
-      margin-top: 14px;
-      min-height: 48px;
-      font-size: 0.95rem;
-    }
+    #mensaje { margin-top: 14px; min-height: 48px; font-size: 0.95rem; }
+    #mensaje.ok { color: #76ff03; text-shadow: 0 0 10px rgba(118, 255, 3, 0.7); font-weight: 700; }
+    #mensaje.error { color: #ff8a80; font-weight: 600; }
 
-    #mensaje.ok {
-      color: #76ff03;
-      text-shadow: 0 0 10px rgba(118, 255, 3, 0.7);
-      font-weight: 700;
-    }
-
-    #mensaje.error {
-      color: #ff8a80;
-      font-weight: 600;
-    }
-
-    .info-intentos {
-      margin-top: 10px;
-      font-size: 0.85rem;
-      color: #b3e5fc;
-    }
+    .info-intentos { margin-top: 10px; font-size: 0.85rem; color: #b3e5fc; }
 
     .nota {
       display: block;
@@ -203,12 +169,10 @@
   </div>
 
   <script>
-    const MAX_PREMIOS_500 = 10;  // 🤡 500 fichas
-    const MAX_PREMIOS_200 = 10;  // 💎 200 fichas
+    const MAX_PREMIOS_500 = 10;
+    const MAX_PREMIOS_200 = 10;
 
-    // 🔥 MODO PRUEBA: true = siempre da premio (para que veas cómo queda)
-    // Cuando lo uses con clientes, cambiá a false
-    const MODO_TEST = true;
+    const MODO_TEST = false;
 
     const STORAGE_KEY = "redb_slot_state_v3";
 
@@ -287,7 +251,7 @@
       const m = String(ahora.getMonth()+1).padStart(2,"0");
       const d = String(ahora.getDate()).padStart(2,"0");
       const hh = String(ahora.getHours()).padStart(2,"0");
-      const mm = String(ahora.getMinutes()).padStart(2,"0");
+      const mm = String(ahora.getMinutes()+1).padStart(2,"0");
       const ss = String(ahora.getSeconds()).padStart(2,"0");
 
       const base = `${y}${m}${d}${hh}${mm}${ss}`;
@@ -315,7 +279,6 @@
     }
 
     function mostrarPremio(tipoPremio) {
-      // tipoPremio: "G" (500 fichas - payaso) o "C" (200 fichas - diamante)
       let textoPremio = "";
 
       if (tipoPremio === "G") {
@@ -369,48 +332,34 @@
     function jugar() {
       let estado = cargarEstado();
 
-      if (!MODO_TEST && estado.yaJugoHoy) {
+      if (estado.yaJugoHoy) {
         mensajeInfo("Ya jugaste hoy. Volvé mañana 🔁", "error");
         return;
       }
 
       spinBtn.disabled = true;
-      mensajeInfo(
-        MODO_TEST
-          ? "MODO PRUEBA: forzando premio para ver animación 👀"
-          : "Girando... 🎰"
-      );
+      mensajeInfo("Girando... 🎰");
 
       animarSlot(({ f1, f2, f3 }) => {
+        estado.yaJugoHoy = true;
         let tipoPremio = null;
 
-        if (MODO_TEST) {
-          // Modo prueba: elegimos al azar entre premio grande y chico
-          tipoPremio = Math.random() < 0.5 ? "G" : "C";
-        } else {
-          // Modo normal
-          estado.yaJugoHoy = true;
-
-          if (f1 === f2 && f2 === f3) {
-            if (f1 === "🤡" && estado.usados500 < MAX_PREMIOS_500) {
-              tipoPremio = "G";
-              estado.usados500 += 1;
-            } else if (f1 === "💎" && estado.usados200 < MAX_PREMIOS_200) {
-              tipoPremio = "C";
-              estado.usados200 += 1;
-            }
+        if (f1 === f2 && f2 === f3) {
+          if (f1 === "🤡" && estado.usados500 < MAX_PREMIOS_500) {
+            tipoPremio = "G";
+            estado.usados500 += 1;
+          }
+          else if (f1 === "💎" && estado.usados200 < MAX_PREMIOS_200) {
+            tipoPremio = "C";
+            estado.usados200 += 1;
           }
         }
 
         if (tipoPremio) {
-          if (!MODO_TEST) {
-            guardarEstado(estado);
-          }
+          guardarEstado(estado);
           mostrarPremio(tipoPremio);
         } else {
-          if (!MODO_TEST) {
-            guardarEstado(estado);
-          }
+          guardarEstado(estado);
           mensajeInfo("Hoy no tocó premio 🙈 Volvé mañana.", "error");
         }
 
@@ -418,12 +367,7 @@
       });
     }
 
-    if (MODO_TEST) {
-      mensajeInfo("MODO PRUEBA ACTIVADO: va a salir premio para que veas cómo queda 👀", "ok");
-    } else {
-      mensajeInfo("Tenés 1 intento hoy. ¡Suerte! 🍀");
-    }
-
+    mensajeInfo("Tenés 1 intento hoy. ¡Suerte! 🍀");
     spinBtn.addEventListener("click", jugar);
   </script>
 </body>
