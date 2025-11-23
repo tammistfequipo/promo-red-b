@@ -156,7 +156,7 @@
         0 6px 0 rgba(123, 31, 162, 1),
         0 0 20px rgba(255, 235, 59, 0.9);
       transform: translateY(0);
-      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.1s.ease;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.1s ease;
     }
 
     #spinBtn:hover:not(:disabled) { filter: brightness(1.05); }
@@ -262,12 +262,28 @@
     <div id="mensaje"></div>
 
     <div class="paytable">
-      🃏 3 JOKER en la línea central → <strong>10K en fichas</strong><br>
-      🃏 4 JOKER en la línea central → <strong>15K en fichas</strong><br>
-      🃏 5 JOKER en la línea central → <strong>50K en fichas</strong><br>
-      ⭐ 3 ESTRELLAS en la línea central → <strong>500 fichas</strong><br>
-      💎 3 DIAMANTES en la línea central → <strong>200 fichas</strong><br>
-      Los premios son en fichas RED-B.
+      🃏 3 JOKER alineados → <strong>SIN PREMIO</strong> (solo mito de JACKPOT 😈)<br><br>
+      ⭐ ESTRELLAS alineadas (línea o diagonal):<br>
+      • 5 ⭐ → <strong>2K fichas</strong> (combo legendario)<br>
+      • 4 ⭐ → <strong>1K fichas</strong><br>
+      • 3 ⭐ → <strong>500 fichas</strong><br><br>
+      💎 DIAMANTES alineados:<br>
+      • 5 💎 → <strong>5K fichas</strong><br>
+      • 4 💎 → <strong>2.500 fichas</strong><br>
+      • 3 💎 → <strong>1K fichas</strong><br><br>
+      👑 CORONAS alineadas:<br>
+      • 5 👑 → <strong>500 fichas</strong><br>
+      • 4 👑 → <strong>300 fichas</strong><br>
+      • 3 👑 → <strong>100 fichas</strong><br><br>
+      🔔 CAMPANAS alineadas:<br>
+      • 5 🔔 → <strong>5K fichas</strong><br>
+      • 4 🔔 → <strong>3K fichas</strong><br>
+      • 3 🔔 → <strong>1K fichas</strong><br><br>
+      💠 GEMAS alineadas:<br>
+      • 5 💠 → <strong>6K fichas</strong><br>
+      • 4 💠 → <strong>4K fichas</strong><br>
+      • 3 💠 → <strong>2K fichas</strong><br><br>
+      Los premios son en fichas RED-B. Válidos en líneas horizontales o diagonales.
     </div>
 
     <small class="nota">
@@ -277,18 +293,19 @@
   </div>
 
   <script>
-    const MAX_PREMIOS_ESTRELLA = 10;   // ⭐ 500 fichas
-    const MAX_PREMIOS_DIAMANTE = 10;   // 💎 200 fichas
     const MAX_INTENTOS_DIA = 3;
-
-    const STORAGE_KEY = "redb_jackpot_state_v4";
+    const STORAGE_KEY = "redb_jackpot_state_v6";
 
     const SYMBOLS = ["🃏", "⭐", "💎", "👑", "🔔", "💠"];
 
-    const PRIZE_MAP = {
-      "⭐": { tipo: "E", fichas: 500, key: "usadosEstrella", max: MAX_PREMIOS_ESTRELLA },
-      "💎": { tipo: "D", fichas: 200, key: "usadosDiamante", max: MAX_PREMIOS_DIAMANTE }
-      // 🃏 aparece pero NUNCA paga
+    // Premios por símbolo y cantidad de alineados
+    const PRIZES = {
+      "⭐": { 3: 500, 4: 1000, 5: 2000 },
+      "💎": { 3: 1000, 4: 2500, 5: 5000 },
+      "👑": { 3: 100, 4: 300, 5: 500 },
+      "🔔": { 3: 1000, 4: 3000, 5: 5000 },
+      "💠": { 3: 2000, 4: 4000, 5: 6000 }
+      // 🃏 no tiene premio
     };
 
     const slotMachine = document.getElementById("slotMachine");
@@ -310,23 +327,17 @@
         if (!data || data.fecha !== hoy) {
           return {
             fecha: hoy,
-            usadosEstrella: 0,
-            usadosDiamante: 0,
             intentosUsados: 0
           };
         }
         return {
           fecha: data.fecha || hoy,
-          usadosEstrella: data.usadosEstrella || 0,
-          usadosDiamante: data.usadosDiamante || 0,
           intentosUsados: data.intentosUsados || 0
         };
       } catch {
         const hoy = hoyString();
         return {
           fecha: hoy,
-          usadosEstrella: 0,
-          usadosDiamante: 0,
           intentosUsados: 0
         };
       }
@@ -355,6 +366,16 @@
     function simboloRandomSinJoker() {
       const sinJoker = SYMBOLS.filter(s => s !== "🃏");
       return sinJoker[Math.floor(Math.random() * sinJoker.length)];
+    }
+
+    function simboloRandomDistinto(avoid, excludeJoker = false) {
+      let pool = SYMBOLS.slice();
+      if (excludeJoker) {
+        pool = pool.filter(s => s !== "🃏");
+      }
+      pool = pool.filter(s => s !== avoid);
+      if (pool.length === 0) pool = SYMBOLS.filter(s => s !== avoid);
+      return pool[Math.floor(Math.random() * pool.length)];
     }
 
     function girarColumna(colIndex, duracion, callbackFin) {
@@ -394,7 +415,7 @@
             next();
           });
         } else {
-          evitarTresJokersEnFila();
+          evitarCombinacionesProhibidas();
           callbackFin && callbackFin();
         }
       }
@@ -402,7 +423,28 @@
       next();
     }
 
-    function evitarTresJokersEnFila() {
+    // Evita 3+ jokers en cualquier línea y 5 iguales de cualquier símbolo en filas
+    function evitarCombinacionesProhibidas() {
+      // 1) Evitar 5 iguales horizontales de cualquier símbolo
+      for (let row = 0; row < 3; row++) {
+        const filaCells = [];
+        for (let col = 0; col < 5; col++) {
+          const cell = cells.find(
+            c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === col
+          );
+          filaCells.push(cell);
+        }
+        const symbol0 = filaCells[0].textContent;
+        const todosIguales = filaCells.every(c => c.textContent === symbol0);
+        if (todosIguales) {
+          // Romper el medio
+          const middleCell = filaCells[2];
+          const excludeJoker = (parseInt(middleCell.dataset.row, 10) === 1);
+          middleCell.textContent = simboloRandomDistinto(symbol0, excludeJoker);
+        }
+      }
+
+      // 2) Evitar 3+ jokers horizontales
       for (let row = 0; row < 3; row++) {
         let runStart = -1;
         let runLength = 0;
@@ -428,7 +470,8 @@
                 c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === breakCol
               );
               if (breakCell) {
-                breakCell.textContent = simboloRandomSinJoker();
+                const excludeJoker = (parseInt(breakCell.dataset.row, 10) === 1);
+                breakCell.textContent = simboloRandomDistinto("🃏", excludeJoker);
               }
             }
             runStart = -1;
@@ -437,9 +480,68 @@
           }
         }
       }
+
+      // 3) Evitar diagonales de 3 jokers (↘ y ↗)
+      // ↘ diagonales posibles
+      const diagDownStarts = [
+        { r: 0, c: 0 },
+        { r: 0, c: 1 },
+        { r: 0, c: 2 }
+      ];
+      diagDownStarts.forEach(start => {
+        const cellsDiag = [];
+        let r = start.r;
+        let c = start.c;
+        while (r < 3 && c < 5) {
+          const cell = cells.find(
+            x => parseInt(x.dataset.row, 10) === r && parseInt(x.dataset.col, 10) === c
+          );
+          cellsDiag.push(cell);
+          r++; c++;
+        }
+        if (cellsDiag.length >= 3) {
+          for (let i = 0; i <= cellsDiag.length - 3; i++) {
+            const trio = cellsDiag.slice(i, i+3);
+            if (trio.every(cell => cell.textContent === "🃏")) {
+              const middleCell = trio[1];
+              const excludeJoker = (parseInt(middleCell.dataset.row, 10) === 1);
+              middleCell.textContent = simboloRandomDistinto("🃏", excludeJoker);
+            }
+          }
+        }
+      });
+
+      // ↗ diagonales posibles
+      const diagUpStarts = [
+        { r: 2, c: 0 },
+        { r: 2, c: 1 },
+        { r: 2, c: 2 }
+      ];
+      diagUpStarts.forEach(start => {
+        const cellsDiag = [];
+        let r = start.r;
+        let c = start.c;
+        while (r >= 0 && c < 5) {
+          const cell = cells.find(
+            x => parseInt(x.dataset.row, 10) === r && parseInt(x.dataset.col, 10) === c
+          );
+          cellsDiag.push(cell);
+          r--; c++;
+        }
+        if (cellsDiag.length >= 3) {
+          for (let i = 0; i <= cellsDiag.length - 3; i++) {
+            const trio = cellsDiag.slice(i, i+3);
+            if (trio.every(cell => cell.textContent === "🃏")) {
+              const middleCell = trio[1];
+              const excludeJoker = (parseInt(middleCell.dataset.row, 10) === 1);
+              middleCell.textContent = simboloRandomDistinto("🃏", excludeJoker);
+            }
+          }
+        }
+      });
     }
 
-    function generarCodigo(tipoPremio) {
+    function generarCodigo(tipoPremio, cantidad, simbolo) {
       const ahora = new Date();
       const y = ahora.getFullYear();
       const m = String(ahora.getMonth()+1).padStart(2,"0");
@@ -455,7 +557,8 @@
         rand += chars[Math.floor(Math.random() * chars.length)];
       }
 
-      return `REDBJACK-${tipoPremio}-${base}-${rand}`;
+      // tipoPremio: símbolo, ej "⭐"
+      return `REDBJACK-${tipoPremio}${cantidad}-${base}-${rand}`;
     }
 
     function formatearFechaHora() {
@@ -469,55 +572,118 @@
       return { fecha: `${d}/${m}/${y}`, hora: `${hh}:${mm}:${ss}` };
     }
 
-    function evaluarLineaCentral() {
-      const lineaCentral = [];
-      for (let col = 0; col < 5; col++) {
-        const cell = cells.find(
-          c => parseInt(c.dataset.col, 10) === col && parseInt(c.dataset.row, 10) === 1
-        );
-        lineaCentral.push({ col, simbolo: cell.textContent, cell });
+    function obtenerGrid() {
+      const grid = [];
+      for (let row = 0; row < 3; row++) {
+        const fila = [];
+        for (let col = 0; col < 5; col++) {
+          const cell = cells.find(
+            c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === col
+          );
+          fila.push({ simbolo: cell.textContent, cell });
+        }
+        grid.push(fila);
       }
+      return grid;
+    }
 
-      let mejorPremio = null;
-      let mejorRun = null;
+    // Busca el mejor premio entre todas las líneas (horizontales + diagonales)
+    function evaluarGanadores() {
+      const grid = obtenerGrid();
+      let mejorPremio = null; // { simbolo, cantidad, fichas }
+      let mejoresCeldas = [];
 
-      let currentSymbol = lineaCentral[0].simbolo;
-      let runStart = 0;
-      let runLength = 1;
-
-      function cerrarRun(indexFinalNoIncluido) {
-        if (runLength >= 3 && PRIZE_MAP[currentSymbol]) {
-          const infoPremio = PRIZE_MAP[currentSymbol];
-          if (!mejorPremio || infoPremio.fichas > mejorPremio.fichas) {
-            mejorPremio = infoPremio;
-            mejorRun = {
-              simbolo: currentSymbol,
-              startCol: runStart,
-              endCol: indexFinalNoIncluido - 1
-            };
+      function evaluarRun(simbolo, runCells) {
+        const len = runCells.length;
+        if (PRIZES[simbolo] && PRIZES[simbolo][len]) {
+          const fichas = PRIZES[simbolo][len];
+          if (!mejorPremio || fichas > mejorPremio.fichas) {
+            mejorPremio = { simbolo, cantidad: len, fichas };
+            mejoresCeldas = runCells.slice();
           }
         }
       }
 
-      for (let i = 1; i < lineaCentral.length; i++) {
-        if (lineaCentral[i].simbolo === currentSymbol) {
-          runLength++;
-        } else {
-          cerrarRun(i);
-          currentSymbol = lineaCentral[i].simbolo;
-          runStart = i;
-          runLength = 1;
+      // horizontales
+      for (let row = 0; row < 3; row++) {
+        let currentSymbol = grid[row][0].simbolo;
+        let runCells = [grid[row][0].cell];
+
+        for (let col = 1; col < 5; col++) {
+          if (grid[row][col].simbolo === currentSymbol) {
+            runCells.push(grid[row][col].cell);
+          } else {
+            if (runCells.length >= 3) evaluarRun(currentSymbol, runCells);
+            currentSymbol = grid[row][col].simbolo;
+            runCells = [grid[row][col].cell];
+          }
         }
-      }
-      cerrarRun(lineaCentral.length);
-
-      if (mejorPremio && mejorRun) {
-        const celdasGanadoras = lineaCentral
-          .filter(item => item.col >= mejorRun.startCol && item.col <= mejorRun.endCol)
-          .map(item => item.cell);
-        return { premio: mejorPremio, celdas: celdasGanadoras };
+        if (runCells.length >= 3) evaluarRun(currentSymbol, runCells);
       }
 
+      // diagonales ↘
+      const diagDownStarts = [
+        { r: 0, c: 0 },
+        { r: 0, c: 1 },
+        { r: 0, c: 2 }
+      ];
+      diagDownStarts.forEach(start => {
+        let r = start.r;
+        let c = start.c;
+        let line = [];
+        while (r < 3 && c < 5) {
+          line.push({ simbolo: grid[r][c].simbolo, cell: grid[r][c].cell });
+          r++; c++;
+        }
+        if (line.length >= 3) {
+          let currentSymbol = line[0].simbolo;
+          let runCells = [line[0].cell];
+          for (let i = 1; i < line.length; i++) {
+            if (line[i].simbolo === currentSymbol) {
+              runCells.push(line[i].cell);
+            } else {
+              if (runCells.length >= 3) evaluarRun(currentSymbol, runCells);
+              currentSymbol = line[i].simbolo;
+              runCells = [line[i].cell];
+            }
+          }
+          if (runCells.length >= 3) evaluarRun(currentSymbol, runCells);
+        }
+      });
+
+      // diagonales ↗
+      const diagUpStarts = [
+        { r: 2, c: 0 },
+        { r: 2, c: 1 },
+        { r: 2, c: 2 }
+      ];
+      diagUpStarts.forEach(start => {
+        let r = start.r;
+        let c = start.c;
+        let line = [];
+        while (r >= 0 && c < 5) {
+          line.push({ simbolo: grid[r][c].simbolo, cell: grid[r][c].cell });
+          r--; c++;
+        }
+        if (line.length >= 3) {
+          let currentSymbol = line[0].simbolo;
+          let runCells = [line[0].cell];
+          for (let i = 1; i < line.length; i++) {
+            if (line[i].simbolo === currentSymbol) {
+              runCells.push(line[i].cell);
+            } else {
+              if (runCells.length >= 3) evaluarRun(currentSymbol, runCells);
+              currentSymbol = line[i].simbolo;
+              runCells = [line[i].cell];
+            }
+          }
+          if (runCells.length >= 3) evaluarRun(currentSymbol, runCells);
+        }
+      });
+
+      if (mejorPremio) {
+        return { premio: mejorPremio, celdas: mejoresCeldas };
+      }
       return null;
     }
 
@@ -531,9 +697,9 @@
       limpiarResaltados();
       celdas.forEach(cell => cell.classList.add("win-highlight"));
 
-      if (premioInfo.tipo === "E") {
+      if (premioInfo.simbolo === "⭐") {
         celdas.forEach(c => c.classList.add("bonus-win"));
-      } else if (premioInfo.tipo === "D") {
+      } else if (premioInfo.simbolo === "💎") {
         celdas.forEach(c => c.classList.add("diamond-win"));
       }
 
@@ -541,12 +707,13 @@
       setTimeout(() => slotWrapper.classList.remove("shake"), 600);
 
       const { fecha, hora } = formatearFechaHora();
-      const codigo = generarCodigo(premioInfo.tipo);
+      const codigo = generarCodigo(premioInfo.simbolo, premioInfo.cantidad, premioInfo.simbolo);
 
       mensajeInfo(`
         🎉 ¡GANASTE <strong>${premioInfo.fichas} FICHAS</strong>! 🎉<br>
         <small>
         Premio en fichas RED-B JACKPOT.<br>
+        Combinación: ${premioInfo.cantidad} símbolos ${premioInfo.simbolo}<br>
         Fecha: ${fecha} - ${hora}<br>
         Código: ${codigo}<br><br>
         ✅ YA TE SALIÓ PREMIO<br>
@@ -567,7 +734,6 @@
         return;
       }
 
-      // Consumimos un intento
       estado.intentosUsados += 1;
       guardarEstado(estado);
       actualizarIntentosUI(estado);
@@ -577,28 +743,12 @@
       mensajeInfo("Girando rodillos... 🎰", null);
 
       animarRodillosSecuencial(() => {
-        const resultado = evaluarLineaCentral();
+        const resultado = evaluarGanadores();
 
         if (resultado) {
           const { premio, celdas } = resultado;
-          const usadoActual = estado[premio.key] || 0;
-          if (usadoActual < premio.max) {
-            estado[premio.key] = usadoActual + 1;
-            guardarEstado(estado);
-            mostrarPremio(premio, celdas); // acá se bloquea el botón siempre
-          } else {
-            guardarEstado(estado);
-            if (estado.intentosUsados >= MAX_INTENTOS_DIA) {
-              mensajeInfo("Hoy no tocó premio 🙈 Ya usaste tus 3 intentos. Volvé mañana.", "error");
-              spinBtn.disabled = true;
-            } else {
-              const restantes = MAX_INTENTOS_DIA - estado.intentosUsados;
-              mensajeInfo(`Hoy no tocó premio 🙈 Te quedan ${restantes} intento(s) hoy.`, "error");
-              spinBtn.disabled = false;
-            }
-          }
+          mostrarPremio(premio, celdas);
         } else {
-          guardarEstado(estado);
           if (estado.intentosUsados >= MAX_INTENTOS_DIA) {
             mensajeInfo("Hoy no tocó premio 🙈 Ya usaste tus 3 intentos. Volvé mañana.", "error");
             spinBtn.disabled = true;
