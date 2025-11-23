@@ -43,17 +43,6 @@
         0 0 18px rgba(255, 193, 7, 0.7);
     }
 
-    .sub { font-size: 0.9rem; color: #e0e0ff; margin-bottom: 10px; }
-
-    .jackpot-label {
-      font-family: "Orbitron", system-ui;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #ffe082;
-      margin-bottom: 6px;
-    }
-
     .slot-wrapper {
       margin: 12px 0 16px;
       padding: 10px;
@@ -81,34 +70,22 @@
       gap: 4px;
     }
 
-    /* EMOJIS GRANDES */
     .cell {
-      height: 68px;
+      height: 64px;
       border-radius: 10px;
       background: radial-gradient(circle at top, #ffffff 0, #eceff1 45%, #b0bec5 100%);
-      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.4rem;
+      font-size: 2.2rem;
       color: #000;
       transition: transform 0.15s ease, filter 0.15s ease;
     }
 
     .cell.win-highlight {
-      transform: scale(1.2);
-      filter: drop-shadow(0 0 14px #ffeb3b);
+      transform: scale(1.25);
+      filter: drop-shadow(0 0 12px #ffeb3b);
     }
-
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      20% { transform: translateX(-5px); }
-      40% { transform: translateX(5px); }
-      60% { transform: translateX(-5px); }
-      80% { transform: translateX(5px); }
-      100% { transform: translateX(0); }
-    }
-    .shake { animation: shake 0.5s ease; }
 
     #spinBtn {
       margin-top: 4px;
@@ -119,12 +96,11 @@
       font-family: "Orbitron", system-ui;
       font-size: 1rem;
       text-transform: uppercase;
+      letter-spacing: 1px;
       cursor: pointer;
       background: radial-gradient(circle at top, #ffeb3b 0, #ff9800 40%, #e91e63 100%);
       color: #2b0b24;
-      box-shadow:
-        0 6px 0 rgba(123, 31, 162, 1),
-        0 0 20px rgba(255, 235, 59, 0.9);
+      box-shadow: 0 0 18px rgba(255, 235, 59, 0.8);
     }
 
     #spinBtn:disabled {
@@ -132,14 +108,20 @@
       cursor: not-allowed;
     }
 
-    #mensaje { margin-top: 14px; min-height: 60px; font-size: 0.92rem; }
-    #mensaje.ok { color: #c6ff00; font-weight: 700; }
-    #mensaje.error { color: #ff8a80; font-weight: 600; }
+    #mensaje {
+      margin-top: 14px;
+      min-height: 60px;
+      font-size: 0.92rem;
+    }
 
-    .info-intentos {
-      margin-top: 8px;
-      font-size: 0.85rem;
-      color: #b3e5fc;
+    .paytable {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      font-size: 0.78rem;
+      color: #ffe082;
+      text-align: left;
     }
 
     .nota {
@@ -147,167 +129,85 @@
       margin-top: 14px;
       font-size: 0.75rem;
       color: #b0bec5;
-      line-height: 1.4;
     }
-
-    /* TABLA EN 2 COLUMNAS */
-    .paytable {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-top: 18px;
-      font-size: 0.8rem;
-      color: #ffe082;
-      text-align: left;
-    }
-
-    .pay-block strong { color: #fff; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>RED-B JACKPOT</h1>
-    <p class="jackpot-label">Slot exclusivo promo RED-B</p>
-    <p class="sub"><strong>3 intentos por día</strong> 🎰</p>
+    <p>Tocá el botón y probá tu suerte 🎰</p>
 
     <div class="slot-wrapper" id="slotWrapper">
-      <div class="slot-machine" id="slotMachine">
-        <div class="reel-column">
-          <div class="cell" data-row="0" data-col="0">💎</div>
-          <div class="cell" data-row="1" data-col="0">👑</div>
-          <div class="cell" data-row="2" data-col="0">🔔</div>
-        </div>
-        <div class="reel-column">
-          <div class="cell" data-row="0" data-col="1">💠</div>
-          <div class="cell" data-row="1" data-col="1">⭐</div>
-          <div class="cell" data-row="2" data-col="1">⭐</div>
-        </div>
-        <div class="reel-column">
-          <div class="cell" data-row="0" data-col="2">👑</div>
-          <div class="cell" data-row="1" data-col="2">💠</div>
-          <div class="cell" data-row="2" data-col="2">💎</div>
-        </div>
-        <div class="reel-column">
-          <div class="cell" data-row="0" data-col="3">🔔</div>
-          <div class="cell" data-row="1" data-col="3">⭐</div>
-          <div class="cell" data-row="2" data-col="3">💠</div>
-        </div>
-        <div class="reel-column">
-          <div class="cell" data-row="0" data-col="4">💎</div>
-          <div class="cell" data-row="1" data-col="4">👑</div>
-          <div class="cell" data-row="2" data-col="4">💠</div>
-        </div>
-      </div>
+      <div class="slot-machine" id="slotMachine"></div>
     </div>
 
     <button id="spinBtn">GIRAR RED-B JACKPOT</button>
 
-    <p class="info-intentos" id="infoIntentos">Intentos restantes hoy: 3/3</p>
+    <p id="infoIntentos">Intentos restantes hoy: 3/3</p>
 
     <div id="mensaje"></div>
 
-    <!-- TABLA DE PREMIOS EN 2 COLUMNAS (marketing, pero solo paga 3 iguales) -->
     <div class="paytable">
-
-      <div class="pay-block">
-        ⭐ <strong>ESTRELLAS</strong><br>
-        • 4 ⭐ → <strong>1K fichas</strong><br>
-        • 3 ⭐ → <strong>500 fichas</strong>
-      </div>
-
-      <div class="pay-block">
-        💎 <strong>DIAMANTES</strong><br>
-        • 4 💎 → <strong>2.5K fichas</strong><br>
-        • 3 💎 → <strong>1K fichas</strong>
-      </div>
-
-      <div class="pay-block">
-        👑 <strong>CORONAS</strong><br>
-        • 4 👑 → <strong>300 fichas</strong><br>
-        • 3 👑 → <strong>100 fichas</strong>
-      </div>
-
-      <div class="pay-block">
-        🔔 <strong>CAMPANAS</strong><br>
-        • 4 🔔 → <strong>3K fichas</strong><br>
-        • 3 🔔 → <strong>1K fichas</strong>
-      </div>
-
-      <div class="pay-block">
-        💠 <strong>GEMAS</strong><br>
-        • 4 💠 → <strong>4K fichas</strong><br>
-        • 3 💠 → <strong>2K fichas</strong>
-      </div>
-
-      <div class="pay-block">
+      <div>
         🃏 <strong>JOKER JACKPOT</strong><br>
-        (Solo mito 😈 — nunca sale ni paga)
+        • 5 🃏 → 50K fichas<br>
+        • 4 🃏 → 15K fichas<br>
+        • 3 🃏 → 10K fichas
       </div>
 
+      <div>
+        ⭐ ESTRELLAS<br>
+        • 3 ⭐ → 500 fichas
+      </div>
+
+      <div>
+        💎 DIAMANTES<br>
+        • 3 💎 → 1K fichas
+      </div>
+
+      <div>
+        💠 GEMAS<br>
+        • 3 💠 → 2K fichas
+      </div>
     </div>
 
     <small class="nota">
-      Solo paga si la combinación empieza en la 1° columna.<br>
-      Si tenés premio, sacá captura y enviála a la línea RED-B.
+      Si tenés premio, sacá captura y enviála a la línea RED-B con tu código.
     </small>
   </div>
 
   <script>
     const MAX_INTENTOS_DIA = 3;
-    const STORAGE_KEY = "redb_jackpot_state_v10";
+    const STORAGE_KEY = "redb_jackpot_state_vFinal";
 
-    // Joker incluido para decorar, pero no paga
-    const SYMBOLS = ["⭐", "💎", "👑", "🔔", "💠", "🃏"];
+    const SYMBOLS = ["🃏", "⭐", "💎", "💠"];
 
-    // Solo se usan los premios de 3 iguales
     const PRIZES = {
-      "⭐": { 3: 500 },
-      "💎": { 3: 1000 },
-      "👑": { 3: 100 },
-      "🔔": { 3: 1000 },
-      "💠": { 3: 2000 }
+      "⭐": 500,
+      "💎": 1000,
+      "💠": 2000
     };
 
     const slotMachine = document.getElementById("slotMachine");
-    const cells = Array.from(slotMachine.querySelectorAll(".cell"));
     const spinBtn = document.getElementById("spinBtn");
     const mensaje = document.getElementById("mensaje");
-    const slotWrapper = document.getElementById("slotWrapper");
     const infoIntentos = document.getElementById("infoIntentos");
 
-    function hoyString() {
-      const h = new Date();
-      return `${h.getFullYear()}-${String(h.getMonth()+1).padStart(2,"0")}-${String(h.getDate()).padStart(2,"0")}`;
-    }
-
-    function cargarEstado() {
-      try {
-        const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        const hoy = hoyString();
-        if (!data || data.fecha !== hoy) {
-          return { fecha: hoy, intentosUsados: 0 };
+    function crearGrid() {
+      slotMachine.innerHTML = "";
+      for (let col = 0; col < 5; col++) {
+        const colDiv = document.createElement("div");
+        colDiv.className = "reel-column";
+        for (let row = 0; row < 3; row++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          cell.textContent = simboloRandom();
+          colDiv.appendChild(cell);
         }
-        return { fecha: data.fecha || hoy, intentosUsados: data.intentosUsados || 0 };
-      } catch {
-        const hoy = hoyString();
-        return { fecha: hoy, intentosUsados: 0 };
+        slotMachine.appendChild(colDiv);
       }
-    }
-
-    function guardarEstado(estado) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
-    }
-
-    function actualizarIntentosUI(estado) {
-      const restantes = Math.max(0, MAX_INTENTOS_DIA - (estado.intentosUsados || 0));
-      infoIntentos.textContent = `Intentos restantes hoy: ${restantes}/${MAX_INTENTOS_DIA}`;
-    }
-
-    function mensajeInfo(texto, tipo = null) {
-      mensaje.innerHTML = texto;
-      mensaje.classList.remove("ok", "error");
-      if (tipo === "ok") mensaje.classList.add("ok");
-      if (tipo === "error") mensaje.classList.add("error");
     }
 
     function simboloRandom() {
@@ -315,271 +215,105 @@
     }
 
     function simboloRandomSinJoker() {
-      return ["⭐", "💎", "👑", "🔔", "💠"][Math.floor(Math.random() * 5)];
+      return ["⭐", "💎", "💠"][Math.floor(Math.random() * 3)];
     }
 
-    function simboloRandomSinJokerDistinto(avoid) {
-      let s;
-      do {
-        s = simboloRandomSinJoker();
-      } while (s === avoid);
-      return s;
+    function animar(callback) {
+      const cells = document.querySelectorAll(".cell");
+      cells.forEach(cell => cell.textContent = simboloRandom());
+      setTimeout(() => {
+        const midCells = document.querySelectorAll('[data-row="1"]');
+        midCells.forEach(cell => cell.textContent = simboloRandomSinJoker());
+        callback();
+      }, 900);
     }
 
-    function girarColumna(colIndex, duracion, callbackFin) {
-      const colCells = cells.filter(c => parseInt(c.dataset.col, 10) === colIndex);
-      const start = performance.now();
-
-      function frame(now) {
-        if (now - start < duracion) {
-          colCells.forEach(cell => cell.textContent = simboloRandom());
-          requestAnimationFrame(frame);
-        } else {
-          colCells.forEach(cell => {
-            const row = parseInt(cell.dataset.row, 10);
-            cell.textContent = row === 1 ? simboloRandomSinJoker() : simboloRandom();
-          });
-          callbackFin && callbackFin();
-        }
-      }
-
-      requestAnimationFrame(frame);
-    }
-
-    function animarRodillosSecuencial(callbackFin) {
-      const durBase = 550;
-      let col = 0;
-
-      function next() {
-        if (col < 5) {
-          girarColumna(col, durBase + col * 120, () => {
-            col++;
-            next();
-          });
-        } else {
-          evitar5Iguales();
-          evitar4DesdePrimeraColumna();
-          evitarJokerAlineado();
-          callbackFin && callbackFin();
-        }
-      }
-
-      next();
-    }
-
-    // Evitar 5 iguales en cualquier fila
-    function evitar5Iguales() {
-      for (let row = 0; row < 3; row++) {
-        const fila = [];
-        for (let col = 0; col < 5; col++) {
-          fila.push(cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col));
-        }
-        const symbol0 = fila[0].textContent;
-        if (fila.every(c => c.textContent === symbol0)) {
-          // Rompo en la columna central
-          fila[2].textContent = simboloRandomSinJokerDistinto(symbol0);
-        }
-      }
-    }
-
-    // ✅ Evitar 4 iguales seguidos empezando en la 1° columna
-    function evitar4DesdePrimeraColumna() {
-      for (let row = 0; row < 3; row++) {
-        const c0 = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === 0);
-        const c1 = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === 1);
-        const c2 = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === 2);
-        const c3 = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === 3);
-        const s0 = c0.textContent;
-        if (s0 !== "🃏" && c1.textContent === s0 && c2.textContent === s0 && c3.textContent === s0) {
-          // Rompo la 3° columna para que quede solo 3 iguales como máximo
-          c3.textContent = simboloRandomSinJokerDistinto(s0);
-        }
-      }
-    }
-
-    // Evitar que el Joker se alinee (mito)
-    function evitarJokerAlineado() {
-      for (let row = 0; row < 3; row++) {
-        let count = 0;
-        let start = -1;
-        for (let col = 0; col <= 5; col++) {
-          let simbolo = null;
-          if (col < 5) {
-            simbolo = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col).textContent;
-          }
-          if (simbolo === "🃏") {
-            if (count === 0) start = col;
-            count++;
-          } else {
-            if (count >= 2) {
-              const cell = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === start + 1);
-              cell.textContent = simboloRandomSinJoker();
-            }
-            count = 0;
-            start = -1;
-          }
-        }
-      }
-    }
-
-    function generarCodigo(simbolo, cantidad) {
-      const ahora = new Date();
-      const y = ahora.getFullYear();
-      const m = String(ahora.getMonth()+1).padStart(2,"0");
-      const d = String(ahora.getDate()).padStart(2,"0");
-      const hh = String(ahora.getHours()).padStart(2,"0");
-      const mm = String(ahora.getMinutes()).padStart(2,"0");
-      const ss = String(ahora.getSeconds()).padStart(2,"0");
-      const base = `${y}${m}${d}${hh}${mm}${ss}`;
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let rand = "";
-      for (let i = 0; i < 4; i++) rand += chars[Math.floor(Math.random() * chars.length)];
-      return `REDBJACK-${simbolo}${cantidad}-${base}-${rand}`;
-    }
-
-    function formatearFechaHora() {
-      const ahora = new Date();
-      const d = String(ahora.getDate()).padStart(2,"0");
-      const m = String(ahora.getMonth()+1).padStart(2,"0");
-      const y = ahora.getFullYear();
-      const hh = String(ahora.getHours()).padStart(2,"0");
-      const mm = String(ahora.getMinutes()).padStart(2,"0");
-      const ss = String(ahora.getSeconds()).padStart(2,"0");
-      return { fecha: `${d}/${m}/${y}`, hora: `${hh}:${mm}:${ss}` };
-    }
-
-    function obtenerGrid() {
+    function evaluarPremio() {
       const grid = [];
       for (let row = 0; row < 3; row++) {
         const fila = [];
-        for (let col = 0; col < 5; col++) {
-          const cell = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col);
-          fila.push({ simbolo: cell.textContent, cell });
+        for (let col = 0; col < 3; col++) {
+          fila.push(document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`).textContent);
         }
         grid.push(fila);
       }
-      return grid;
-    }
 
-    // Solo paga 3 iguales, mejor línea, empezando en 1° columna
-    function evaluarGanadores() {
-      const grid = obtenerGrid();
-      let mejorPremio = null;
-      let mejoresCeldas = [];
-
-      function evaluarLinea(positions) {
-        const first = positions[0];
-        const simbolo = grid[first.r][first.c].simbolo;
-        if (!PRIZES[simbolo]) return;
-        const runCells = [grid[first.r][first.c].cell];
-        let len = 1;
-
-        for (let i = 1; i < positions.length; i++) {
-          const { r, c } = positions[i];
-          if (grid[r][c].simbolo === simbolo) {
-            runCells.push(grid[r][c].cell);
-            len++;
-          } else break;
-        }
-
-        if (len === 3 && PRIZES[simbolo][3]) {
-          const fichas = PRIZES[simbolo][3];
-          if (!mejorPremio || fichas > mejorPremio.fichas) {
-            mejorPremio = { simbolo, cantidad: 3, fichas };
-            mejoresCeldas = runCells.slice();
-          }
+      for (let row = 0; row < 3; row++) {
+        const s1 = grid[row][0], s2 = grid[row][1], s3 = grid[row][2];
+        if (s1 === s2 && s2 === s3 && PRIZES[s1]) {
+          return { simbolo: s1, fichas: PRIZES[s1], row };
         }
       }
-
-      const lineas = [
-        [ { r:0,c:0 }, { r:0,c:1 }, { r:0,c:2 }, { r:0,c:3 }, { r:0,c:4 } ],
-        [ { r:1,c:0 }, { r:1,c:1 }, { r:1,c:2 }, { r:1,c:3 }, { r:1,c:4 } ],
-        [ { r:2,c:0 }, { r:2,c:1 }, { r:2,c:2 }, { r:2,c:3 }, { r:2,c:4 } ],
-        [ { r:0,c:0 }, { r:1,c:1 }, { r:2,c:2 } ],
-        [ { r:2,c:0 }, { r:1,c:1 }, { r:0,c:2 } ]
-      ];
-
-      lineas.forEach(evaluarLinea);
-
-      if (mejorPremio) return { premio: mejorPremio, celdas: mejoresCeldas };
       return null;
     }
 
-    function limpiarResaltados() {
-      cells.forEach(cell => cell.classList.remove("win-highlight"));
+    function generarCodigo(simbolo) {
+      const t = Date.now();
+      return "REDB-" + simbolo + "-" + t.toString().slice(-6);
     }
 
-    function mostrarPremio(premioInfo, celdas) {
-      limpiarResaltados();
-      celdas.forEach(cell => cell.classList.add("win-highlight"));
-
-      slotWrapper.classList.add("shake");
-      setTimeout(() => slotWrapper.classList.remove("shake"), 600);
-
-      const { fecha, hora } = formatearFechaHora();
-      const codigo = generarCodigo(premioInfo.simbolo, premioInfo.cantidad);
-
-      mensajeInfo(`
-        🎉 ¡GANASTE <strong>${premioInfo.fichas} FICHAS</strong>! 🎉<br>
-        <small>
-        Combinación: 3 símbolos ${premioInfo.simbolo}<br>
-        Fecha: ${fecha} - ${hora}<br>
-        Código: ${codigo}<br><br>
-        ✅ YA TE SALIÓ PREMIO<br>
-        📸 SACÁ CAPTURA Y ENVIÁLA A LA LÍNEA
-        </small>
-      `, "ok");
-
+    function mostrarPremio(p) {
+      mensaje.innerHTML = `
+        🎉 ¡GANASTE <strong>${p.fichas} FICHAS</strong>! 🎉<br>
+        Código: <strong>${generarCodigo(p.simbolo)}</strong><br>
+        📸 Sacá captura y enviála a la línea
+      `;
       spinBtn.disabled = true;
+    }
+
+    function hoy() {
+      const d = new Date();
+      return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    }
+
+    function cargarEstado() {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (!data || data.fecha !== hoy()) {
+        return { fecha: hoy(), intentos: 0 };
+      }
+      return data;
+    }
+
+    function guardarEstado(e) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(e));
+    }
+
+    function actualizarIntentos(e) {
+      infoIntentos.textContent = `Intentos restantes hoy: ${3 - e.intentos}/3`;
     }
 
     function jugar() {
-      let estado = cargarEstado();
-
-      if (estado.intentosUsados >= MAX_INTENTOS_DIA) {
-        mensajeInfo("Ya usaste tus 3 intentos de hoy. Volvé mañana 🔁", "error");
+      const estado = cargarEstado();
+      if (estado.intentos >= 3) {
+        mensaje.textContent = "Ya usaste tus 3 intentos. Volvé mañana.";
         spinBtn.disabled = true;
-        actualizarIntentosUI(estado);
         return;
       }
 
-      estado.intentosUsados++;
-      guardarEstado(estado);
-      actualizarIntentosUI(estado);
-
       spinBtn.disabled = true;
-      limpiarResaltados();
-      mensajeInfo("Girando rodillos... 🎰");
+      estado.intentos++;
+      guardarEstado(estado);
+      actualizarIntentos(estado);
 
-      animarRodillosSecuencial(() => {
-        const resultado = evaluarGanadores();
+      mensaje.textContent = "Girando... 🎰";
 
-        if (resultado) {
-          const { premio, celdas } = resultado;
-          mostrarPremio(premio, celdas);
-        } else {
-          if (estado.intentosUsados >= MAX_INTENTOS_DIA) {
-            mensajeInfo("Hoy no tocó premio 🙈 Ya usaste tus 3 intentos. Volvé mañana.", "error");
-            spinBtn.disabled = true;
-          } else {
-            const restantes = MAX_INTENTOS_DIA - estado.intentosUsados;
-            mensajeInfo(`Hoy no tocó premio 🙈 Te quedan ${restantes} intento(s) hoy.`, "error");
-            spinBtn.disabled = false;
-          }
+      animar(() => {
+        const premio = evaluarPremio();
+        if (premio) mostrarPremio(premio);
+        else {
+          mensaje.textContent = "Hoy no tocó premio 🙈";
+          if (estado.intentos < 3) spinBtn.disabled = false;
         }
       });
     }
 
     (function init() {
+      crearGrid();
       const estado = cargarEstado();
-      actualizarIntentosUI(estado);
-
-      if (estado.intentosUsados >= MAX_INTENTOS_DIA) {
+      actualizarIntentos(estado);
+      if (estado.intentos >= 3) {
+        mensaje.textContent = "Ya usaste tus 3 intentos. Volvé mañana.";
         spinBtn.disabled = true;
-        mensajeInfo("Ya usaste tus 3 intentos de hoy. Volvé mañana 🔁", "error");
-      } else {
-        spinBtn.disabled = false;
-        mensajeInfo("Tenés hasta 3 intentos hoy. ¡Suerte! 🍀", "ok");
       }
     })();
 
