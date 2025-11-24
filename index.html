@@ -254,7 +254,7 @@
 
   <script>
     const MAX_INTENTOS_DIA = 3;
-    const STORAGE_KEY = "redb_jackpot_state_v10";
+    const STORAGE_KEY = "redb_jackpot_state_v11";
 
     // Joker incluido para decorar (jackpot visual), pero NO paga
     const SYMBOLS = ["⭐", "💎", "👑", "🔔", "💠", "🃏"];
@@ -315,31 +315,77 @@
       return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
     }
 
-    function simboloRandomSinJoker() {
-      return ["⭐", "💎", "👑", "🔔", "💠"][Math.floor(Math.random() * 5)];
+    // Genera una grilla final 3x5 donde:
+    // - Ningún símbolo (excepto Joker) tiene más de 3 iguales seguidos en una fila.
+    // - Joker nunca aparece 3 veces seguidas en una fila.
+    function generarGridFinal() {
+      const rows = 3;
+      const cols = 5;
+      const grid = Array.from({ length: rows }, () => Array(cols).fill("⭐"));
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const posibles = [...SYMBOLS];
+          let elegido = null;
+
+          while (posibles.length > 0 && !elegido) {
+            const idx = Math.floor(Math.random() * posibles.length);
+            const simb = posibles[idx];
+
+            // Calcular racha hacia la izquierda
+            let runLen = 0;
+            for (let k = 1; k <= 3 && c - k >= 0; k++) {
+              if (grid[r][c - k] === simb) {
+                runLen++;
+              } else {
+                break;
+              }
+            }
+
+            if (simb === "🃏") {
+              // Joker máximo 2 seguidos
+              if (runLen + 1 <= 2) {
+                elegido = simb;
+              } else {
+                posibles.splice(idx, 1);
+              }
+            } else {
+              // Otros símbolos máximo 3 seguidos
+              if (runLen + 1 <= 3) {
+                elegido = simb;
+              } else {
+                posibles.splice(idx, 1);
+              }
+            }
+          }
+
+          // Fallback por seguridad (por si se agotan opciones)
+          if (!elegido) {
+            const avoid = c > 0 ? grid[r][c - 1] : null;
+            elegido = SYMBOLS.find(s => s !== avoid) || "⭐";
+          }
+
+          grid[r][c] = elegido;
+        }
+      }
+
+      return grid;
     }
 
-    function simboloRandomSinJokerDistinto(avoid) {
-      let s;
-      do {
-        s = simboloRandomSinJoker();
-      } while (s === avoid);
-      return s;
-    }
-
-    function girarColumna(colIndex, duracion, callbackFin) {
+    function girarColumna(colIndex, duracion, finalGrid, callbackFin) {
       const colCells = cells.filter(c => parseInt(c.dataset.col, 10) === colIndex);
       const start = performance.now();
 
       function frame(now) {
         if (now - start < duracion) {
+          // Mientras gira, muestra símbolos aleatorios
           colCells.forEach(cell => cell.textContent = simboloRandom());
           requestAnimationFrame(frame);
         } else {
+          // Al finalizar, fija la grilla final (sin modificar nada después)
           colCells.forEach(cell => {
             const row = parseInt(cell.dataset.row, 10);
-            // Fila central sin Joker para que no se alinee
-            cell.textContent = row === 1 ? simboloRandomSinJoker() : simboloRandom();
+            cell.textContent = finalGrid[row][colIndex];
           });
           callbackFin && callbackFin();
         }
@@ -348,92 +394,23 @@
       requestAnimationFrame(frame);
     }
 
-    function animarRodillosSecuencial(callbackFin) {
+    function animarRodillosSecuencial(finalGrid, callbackFin) {
       const durBase = 550;
       let col = 0;
 
       function next() {
         if (col < 5) {
-          girarColumna(col, durBase + col * 120, () => {
+          girarColumna(col, durBase + col * 120, finalGrid, () => {
             col++;
             next();
           });
         } else {
-          evitar4y5Horizontales();
-          evitarJokerAlineado();
+          // No se toca más la grilla; queda tal cual finalGrid
           callbackFin && callbackFin();
         }
       }
 
       next();
-    }
-
-    // ❌ Nunca mostrar 4 ni 5 seguidos de ningún símbolo (solo máximo 3)
-    function evitar4y5Horizontales() {
-      for (let row = 0; row < 3; row++) {
-        const fila = [];
-        for (let col = 0; col < 5; col++) {
-          const cell = cells.find(
-            c => parseInt(c.dataset.row, 10) === row && parseInt(c.dataset.col, 10) === col
-          );
-          fila.push(cell);
-        }
-
-        let currentSymbol = fila[0].textContent;
-        let runStart = 0;
-        let runLength = 1;
-
-        function romperRun(start, length, symbol) {
-          if (length >= 4 && symbol !== "🃏") {
-            const breakIndex = start + 1; // rompo la segunda ficha de la racha
-            const breakCell = fila[breakIndex];
-            breakCell.textContent = simboloRandomSinJokerDistinto(symbol);
-          }
-        }
-
-        for (let i = 1; i <= fila.length; i++) {
-          const symbol = i < fila.length ? fila[i].textContent : null;
-          if (symbol === currentSymbol) {
-            runLength++;
-          } else {
-            romperRun(runStart, runLength, currentSymbol);
-            currentSymbol = symbol;
-            runStart = i;
-            runLength = 1;
-          }
-        }
-      }
-    }
-
-    // Evitar que el Joker se alinee (jamás 3 seguidos de 🃏)
-    function evitarJokerAlineado() {
-      for (let row = 0; row < 3; row++) {
-        let count = 0;
-        let start = -1;
-        for (let col = 0; col <= 5; col++) {
-          let simbolo = null;
-          if (col < 5) {
-            simbolo = cells.find(
-              c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col
-            ).textContent;
-          }
-
-          if (simbolo === "🃏") {
-            if (count === 0) start = col;
-            count++;
-          } else {
-            if (count >= 2) {
-              // si había 2 o más Joker seguidos, rompo uno en el medio
-              const cell = cells.find(
-                c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === start + 1
-              );
-              cell.textContent = simboloRandomSinJoker();
-            }
-            count = 0;
-            start = -1;
-          }
-        }
-      }
     }
 
     function generarCodigo(simbolo, cantidad) {
@@ -567,7 +544,9 @@
       limpiarResaltados();
       mensajeInfo("Girando rodillos... 🎰");
 
-      animarRodillosSecuencial(() => {
+      const finalGrid = generarGridFinal();
+
+      animarRodillosSecuencial(finalGrid, () => {
         const resultado = evaluarGanadores();
 
         if (resultado) {
