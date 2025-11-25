@@ -81,7 +81,6 @@
       gap: 4px;
     }
 
-    /* EMOJIS GRANDES */
     .cell {
       height: 68px;
       border-radius: 10px;
@@ -150,7 +149,6 @@
       line-height: 1.4;
     }
 
-    /* TABLA EN 2 COLUMNAS */
     .paytable {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -206,7 +204,6 @@
 
     <div id="mensaje"></div>
 
-    <!-- TABLA DE PREMIOS EN 2 COLUMNAS -->
     <div class="paytable">
       <div class="pay-block">
         🃏 <strong>JOKER JACKPOT</strong><br>
@@ -256,18 +253,15 @@
     const MAX_INTENTOS_DIA = 3;
     const STORAGE_KEY = "redb_jackpot_state_v12";
 
-    // Joker incluido para decorar (jackpot visual), pero NO paga
     const SYMBOLS = ["⭐", "💎", "👑", "🔔", "💠", "🃏"];
     const NON_JOKER_SYMBOLS = ["⭐", "💎", "👑", "🔔", "💠"];
 
-    // Solo se usan los premios de 3 iguales (siempre empezando en col 0)
     const PRIZES = {
       "⭐": { 3: 500 },
       "💎": { 3: 1000 },
       "👑": { 3: 100 },
       "🔔": { 3: 1000 },
       "💠": { 3: 2000 }
-      // 🃏 no tiene premio real
     };
 
     const slotMachine = document.getElementById("slotMachine");
@@ -320,33 +314,10 @@
       return NON_JOKER_SYMBOLS[Math.floor(Math.random() * NON_JOKER_SYMBOLS.length)];
     }
 
-    // Ajusta la grilla para que los JOKER 🃏 NUNCA formen 3 en línea
-    // en las líneas que empiezan en la primera columna (filas y diagonales).
-    function evitarJokersPaylines(grid) {
-      const J = "🃏";
-
-      // Filas horizontales (empiezan en col 0)
-      for (let r = 0; r < 3; r++) {
-        if (grid[r][0] === J && grid[r][1] === J && grid[r][2] === J) {
-          grid[r][1] = randomNonJoker();
-        }
-      }
-
-      // Diagonal principal (0,0)-(1,1)-(2,2)
-      if (grid[0][0] === J && grid[1][1] === J && grid[2][2] === J) {
-        grid[1][1] = randomNonJoker();
-      }
-
-      // Diagonal inversa (2,0)-(1,1)-(0,2)
-      if (grid[2][0] === J && grid[1][1] === J && grid[0][2] === J) {
-        grid[1][1] = randomNonJoker();
-      }
-    }
-
-    // Genera una grilla final 3x5 donde:
-    // - Ningún símbolo (no Joker) tiene más de 3 iguales seguidos en una fila.
-    // - Joker nunca aparece 3 veces seguidas en una fila.
-    // - Además, Joker nunca forma 3 en línea en las líneas de premio (filas y diagonales desde col 0).
+    // Genera grilla final 3x5:
+    // - Columna 0: nunca Joker (solo NON_JOKER_SYMBOLS).
+    // - Filas: máximo 3 seguidos de un símbolo (para que no haya 4/5 iguales).
+    // - Joker puede salir en columnas 1-4, pero no influye en líneas que pagan.
     function generarGridFinal() {
       const rows = 3;
       const cols = 5;
@@ -354,14 +325,14 @@
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const posibles = [...SYMBOLS];
+          const pool = (c === 0) ? NON_JOKER_SYMBOLS : SYMBOLS; // 👈 cambio clave: col 0 sin Joker
+          const posibles = [...pool];
           let elegido = null;
 
           while (posibles.length > 0 && !elegido) {
             const idx = Math.floor(Math.random() * posibles.length);
             const simb = posibles[idx];
 
-            // Calcular racha hacia la izquierda
             let runLen = 0;
             for (let k = 1; k <= 3 && c - k >= 0; k++) {
               if (grid[r][c - k] === simb) {
@@ -372,14 +343,12 @@
             }
 
             if (simb === "🃏") {
-              // Joker máximo 2 seguidos en una fila
               if (runLen + 1 <= 2) {
                 elegido = simb;
               } else {
                 posibles.splice(idx, 1);
               }
             } else {
-              // Otros símbolos máximo 3 seguidos en una fila (para que nunca haya 4 o 5 iguales)
               if (runLen + 1 <= 3) {
                 elegido = simb;
               } else {
@@ -388,18 +357,14 @@
             }
           }
 
-          // Fallback por seguridad (por si se agotan opciones)
           if (!elegido) {
             const avoid = c > 0 ? grid[r][c - 1] : null;
-            elegido = SYMBOLS.find(s => s !== avoid) || "⭐";
+            elegido = pool.find(s => s !== avoid) || pool[0];
           }
 
           grid[r][c] = elegido;
         }
       }
-
-      // Ajuste final para que Joker no forme nunca 3 en línea en las líneas de pago
-      evitarJokersPaylines(grid);
 
       return grid;
     }
@@ -410,11 +375,9 @@
 
       function frame(now) {
         if (now - start < duracion) {
-          // Mientras gira, muestra símbolos aleatorios
           colCells.forEach(cell => cell.textContent = simboloRandom());
           requestAnimationFrame(frame);
         } else {
-          // Al finalizar, fija la grilla final (sin modificar nada después)
           colCells.forEach(cell => {
             const row = parseInt(cell.dataset.row, 10);
             cell.textContent = finalGrid[row][colIndex];
@@ -437,7 +400,6 @@
             next();
           });
         } else {
-          // No se toca más la grilla; queda tal cual finalGrid
           callbackFin && callbackFin();
         }
       }
@@ -486,8 +448,6 @@
       return grid;
     }
 
-    // Solo paga 3 iguales, mejor línea, empezando en 1° columna
-    // Líneas: fila de arriba, del medio, de abajo y las 2 diagonales desde col 0
     function evaluarGanadores() {
       const grid = obtenerGrid();
       let mejorPremio = null;
@@ -496,7 +456,7 @@
       function evaluarLinea(positions) {
         const first = positions[0];
         const simbolo = grid[first.r][first.c].simbolo;
-        if (!PRIZES[simbolo]) return; // Joker fuera, no paga nunca
+        if (!PRIZES[simbolo]) return;
         const runCells = [grid[first.r][first.c].cell];
         let len = 1;
 
@@ -508,7 +468,6 @@
           } else break;
         }
 
-        // Solo 3 iguales
         if (len === 3 && PRIZES[simbolo][3]) {
           const fichas = PRIZES[simbolo][3];
           if (!mejorPremio || fichas > mejorPremio.fichas) {
