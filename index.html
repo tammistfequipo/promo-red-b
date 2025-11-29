@@ -207,38 +207,31 @@
     <div class="paytable">
       <div class="pay-block">
         🃏 <strong>JOKER JACKPOT</strong><br>
-        • 5 🃏 → <strong>50K fichas</strong><br>
-        • 4 🃏 → <strong>15K fichas</strong><br>
         • 3 🃏 → <strong>10K fichas</strong>
       </div>
 
       <div class="pay-block">
         ⭐ <strong>ESTRELLAS</strong><br>
-        • 4 ⭐ → <strong>1K fichas</strong><br>
         • 3 ⭐ → <strong>500 fichas</strong>
       </div>
 
       <div class="pay-block">
         💎 <strong>DIAMANTES</strong><br>
-        • 4 💎 → <strong>2.5K fichas</strong><br>
         • 3 💎 → <strong>1K fichas</strong>
       </div>
 
       <div class="pay-block">
         👑 <strong>CORONAS</strong><br>
-        • 4 👑 → <strong>300 fichas</strong><br>
         • 3 👑 → <strong>100 fichas</strong>
       </div>
 
       <div class="pay-block">
         🔔 <strong>CAMPANAS</strong><br>
-        • 4 🔔 → <strong>3K fichas</strong><br>
         • 3 🔔 → <strong>1K fichas</strong>
       </div>
 
       <div class="pay-block">
         💠 <strong>GEMAS</strong><br>
-        • 4 💠 → <strong>4K fichas</strong><br>
         • 3 💠 → <strong>2K fichas</strong>
       </div>
     </div>
@@ -325,7 +318,7 @@
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const pool = (c === 0) ? NON_JOKER_SYMBOLS : SYMBOLS; // 👈 cambio clave: col 0 sin Joker
+          const pool = (c === 0) ? NON_JOKER_SYMBOLS : SYMBOLS;
           const posibles = [...pool];
           let elegido = null;
 
